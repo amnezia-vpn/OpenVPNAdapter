@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -51,7 +51,7 @@ namespace openvpn {
       init_error("OpenSSL");
     }
 
-    explicit OpenSSLException(const std::string& error_text)
+    explicit OpenSSLException(const std::string& error_text) noexcept
     {
       ssl_err = -1;
       init_error(error_text.c_str());

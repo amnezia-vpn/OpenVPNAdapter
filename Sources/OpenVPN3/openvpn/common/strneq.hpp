@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -18,6 +18,8 @@
 //    You should have received a copy of the GNU Affero General Public License
 //    along with this program in the COPYING file.
 //    If not, see <http://www.gnu.org/licenses/>.
+
+#pragma once
 
 #include <string>
 #include <atomic>

@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -121,7 +121,7 @@ namespace openvpn {
 	return rr_obj.headers;
       }
 
-      const olong content_length() const {
+      olong content_length() const {
 	return rr_content_length;
       }
 
@@ -481,12 +481,12 @@ namespace openvpn {
 		stats->error(Error::SSL_ERROR);
 		throw;
 	      }
-	    if (size >= 0)
+	    if (size > 0)
 	      {
 		buf.set_size(size);
 		http_in(buf);
 	      }
-	    else if (size == SSLConst::SHOULD_RETRY)
+	    else if (size == SSLConst::SHOULD_RETRY || !size)
 	      break;
 	    else if (size == SSLConst::PEER_CLOSE_NOTIFY)
 	      parent().base_error_handler(STATUS::E_EOF_SSL, "SSL PEER_CLOSE_NOTIFY");

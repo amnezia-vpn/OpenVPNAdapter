@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2019 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -111,5 +111,32 @@ TEST(ssl, translate_ciphers_openssl)
   EXPECT_EQ("NONSENSE:AES256-SHA", OpenSSLContext::translate_cipher_list("NONSENSE:AES256-SHA"));
 
   testLog->setPrintOutput(previousLogOutput);
+}
+#endif
+
+#if defined(USE_OPENSSL) && OPENSSL_VERSION_NUMBER >= 0x30000000L
+TEST(ssl, enablelegacyProvider)
+{
+  RandomAPI::Ptr rng(new FakeSecureRand);
+
+  SSLLib::SSLAPI::Config::Ptr sslcfg(new SSLLib::SSLAPI::Config);
+  sslcfg->set_local_cert_enabled(false);
+  sslcfg->set_flags(SSLConst::NO_VERIFY_PEER);
+  sslcfg->set_rng(rng);
+
+  auto f_nolegacy = sslcfg->new_factory();
+
+  EXPECT_EQ(SSLLib::CryptoAPI::CipherContext::is_supported(f_nolegacy->libctx(), openvpn::CryptoAlgs::BF_CBC), false);
+
+  SSLLib::SSLAPI::Config::Ptr sslcfg_legacy(new SSLLib::SSLAPI::Config);
+  sslcfg_legacy->set_local_cert_enabled(false);
+  sslcfg_legacy->set_flags(SSLConst::NO_VERIFY_PEER);
+  sslcfg_legacy->set_rng(rng);
+  sslcfg_legacy->enable_legacy_algorithms(true);
+
+  /* Should not throw an error */
+  auto f_legacy = sslcfg_legacy->new_factory();
+
+  EXPECT_EQ(SSLLib::CryptoAPI::CipherContext::is_supported(f_legacy->libctx(), openvpn::CryptoAlgs::BF_CBC), true);
 }
 #endif

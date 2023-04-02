@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -170,7 +170,7 @@ namespace openvpn {
 			// modify protocol based on IP version of given address
 			const std::string title = e.directive + " addr";
 			const IP::Addr addr = IP::Addr(e.addr, title.c_str());
-			e.proto.mod_addr_version(addr);
+			e.proto.mod_addr_version(addr.version());
 		      }
 
 		    // number of threads
@@ -257,7 +257,7 @@ namespace openvpn {
 		{
 		  e.addr = o->get(1, 128);
 		  const IP::Addr addr = IP::Addr(e.addr, "local addr");
-		  e.proto.mod_addr_version(addr);
+		  e.proto.mod_addr_version(addr.version());
 		}
 	      else if (e.proto.is_ipv6())
 		e.addr = "::0";

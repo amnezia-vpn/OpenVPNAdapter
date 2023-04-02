@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -26,6 +26,7 @@
 #include <openvpn/mbedtls/crypto/cipheraead.hpp>
 #include <openvpn/mbedtls/crypto/digest.hpp>
 #include <openvpn/mbedtls/crypto/hmac.hpp>
+#include <openvpn/mbedtls/crypto/tls1prf.hpp>
 
 namespace openvpn {
 
@@ -40,6 +41,9 @@ namespace openvpn {
 
     // HMAC
     typedef MbedTLSCrypto::HMACContext HMACContext;
+
+    // TLS 1.0/1.1 PRF function
+    using TLS1PRF = MbedTLSCrypto::TLS1PRF;
   };
 }
 

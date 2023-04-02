@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -32,6 +32,12 @@
 
 #include <openvpn/openssl/compat.hpp>
 
+// FIXME: don't use deprecated functions with OpenSSL 3
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 namespace openvpn {
   using ssl_external_pki = SSLFactoryAPI::ssl_external_pki;
 
@@ -48,7 +54,7 @@ namespace openvpn {
       : external_pki(external_pki_arg), n_errors(0)
     {
       RSA* rsa = nullptr;
-      RSA* pub_rsa = nullptr;
+      const RSA* pub_rsa = nullptr;
       RSA_METHOD* rsa_meth = nullptr;
       const char* errtext = "";
 
@@ -76,7 +82,7 @@ namespace openvpn {
 	  errtext = "pkey is not RSA";
 	  goto err;
 	}
-      pub_rsa = EVP_PKEY_get0_RSA(X509_get0_pubkey(cert));
+      pub_rsa = (RSA *)EVP_PKEY_get0_RSA(X509_get0_pubkey(cert));
 
       /* allocate RSA object */
       rsa = RSA_new();
@@ -218,7 +224,7 @@ namespace openvpn {
     unsigned int n_errors;
   };
 
-  /* The OpenSSL EC_* methods we are using here are only available for OpennSSL 1.1.0 and later */
+  /* The OpenSSL EC_* methods we are using here are only available for OpenSSL 1.1.0 and later */
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(OPENSSL_NO_EC)
   class ExternalPKIECImpl : public ExternalPKIImpl
   {
@@ -256,7 +262,13 @@ namespace openvpn {
 	  goto err;
 	}
 
-      ec = EC_KEY_dup(static_cast<const EC_KEY*>(EVP_PKEY_get0(pubkey)));
+      ec = EVP_PKEY_get1_EC_KEY(pubkey);
+
+      if (!ec)
+      {
+	  errtext = "cannot get public EC key";
+	  goto err;
+      }
 
       /* This will move responsibility to free ec_method to ec */
       if (!EC_KEY_set_method(ec, ec_method))
@@ -411,3 +423,7 @@ namespace openvpn {
 #endif
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(OPENSSL_NO_EC) */
 }
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#pragma GCC diagnostic pop
+#endif

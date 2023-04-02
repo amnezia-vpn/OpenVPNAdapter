@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -264,7 +264,6 @@ namespace openvpn {
 
 		  const size_t len = z + 2;
 		  incremental_copy(output_ptr, match_ptr, len);
-		  match_ptr += len;
 		  output_ptr += len;
 		}
 

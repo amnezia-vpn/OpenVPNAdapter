@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -35,8 +35,16 @@ namespace openvpn {
   {
     typedef RCPtr<PushOptionsBase> Ptr;
 
+    OptionList merge;
     OptionList multi;
     OptionList singleton;
+  };
+
+  // Used by OptionListContinuation::finalize() to merge static and pushed options
+  struct PushOptionsMerger : public RC<thread_unsafe_refcount>
+  {
+    typedef RCPtr<PushOptionsMerger> Ptr;
+    virtual void merge(OptionList& pushed, const OptionList& config) const = 0;
   };
 
   // Aggregate pushed option continuations into a singular option list.
@@ -65,7 +73,19 @@ namespace openvpn {
       if (!complete_)
 	{
 	  partial_ = true;
-	  extend(other, filt);
+          try
+	    {
+	      // throws if pull-filter rejects
+	      extend(other, filt);
+	    }
+	  catch (const Option::RejectedException& e)
+	    {
+	      // remove all server pushed options on reject
+	      clear();
+	      if (push_base)
+		extend(push_base->multi, nullptr);
+	      throw;
+	    }
 	  if (!continuation(other))
 	    {
 	      if (push_base)
@@ -81,6 +101,15 @@ namespace openvpn {
 	}
       else
 	throw olc_complete();
+    }
+
+    void finalize(const PushOptionsMerger::Ptr merger)
+    {
+      if (merger)
+	{
+	  merger->merge(*this, push_base->merge);
+	  update_map();
+	}
     }
 
     // returns true if add() was called at least once

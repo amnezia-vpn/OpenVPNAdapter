@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -36,6 +36,7 @@
 #include <openvpn/buffer/buffer.hpp>
 #include <openvpn/frame/frame.hpp>
 #include <openvpn/auth/authcert.hpp>
+#include <openvpn/crypto/definitions.hpp>
 #include <openvpn/pki/epkibase.hpp>
 #include <openvpn/pki/pktype.hpp>
 #include <openvpn/ssl/kuparse.hpp>
@@ -98,6 +99,9 @@ namespace openvpn {
     // create a new SSLAPI instance
     virtual SSLAPI::Ptr ssl() = 0;
 
+	// get the library context that is used with this SSLAPI instance
+	virtual SSLLib::Ctx libctx() = 0;
+
     // like ssl() above but optionally verify hostname against cert CommonName and/or
     // SubjectAltName, and optionally set/lookup a cache key for this session.
     virtual SSLAPI::Ptr ssl(const std::string* hostname, const std::string* cache_key) = 0;
@@ -144,6 +148,7 @@ namespace openvpn {
     virtual void set_external_pki_callback(ExternalPKIBase* external_pki_arg) = 0; // private key alternative
     virtual void set_session_ticket_handler(TLSSessionTicketBase* session_ticket_handler) = 0; // server side
     virtual void set_client_session_tickets(const bool v) = 0; // client side
+    virtual void enable_legacy_algorithms(const bool v) = 0;  // loads legacy+default provider in OpenSSL 3
     virtual void set_sni_handler(SNI::HandlerBase* sni_handler) = 0; // server side
     virtual void set_sni_name(const std::string& sni_name_arg) = 0; // client side
     virtual void set_private_key_password(const std::string& pwd) = 0;

@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -21,6 +21,8 @@
 
 #ifndef OPENVPN_SSL_SSLCHOOSE_H
 #define OPENVPN_SSL_SSLCHOOSE_H
+
+#include <openvpn/crypto/definitions.hpp>
 
 #ifdef USE_OPENSSL
 #include <openvpn/openssl/crypto/api.hpp>

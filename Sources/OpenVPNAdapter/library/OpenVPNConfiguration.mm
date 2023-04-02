@@ -315,13 +315,14 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
 }
 
 - (OpenVPNIPv6Preference)ipv6 {
-    NSString *currentValue = [NSString stringWithUTF8String:_config.ipv6.c_str()];
+//    NSString *currentValue = [NSString stringWithUTF8String:_config.ipv6.c_str()];
+    NSString *currentValue = @"";
     return [OpenVPNConfiguration getIPv6PreferenceFromValue:currentValue];
 }
 
 - (void)setIpv6:(OpenVPNIPv6Preference)ipv6 {
     NSString *value = [OpenVPNConfiguration getValueFromIPv6Preference:ipv6];
-    _config.ipv6 = std::string([value UTF8String]);
+//    _config.ipv6 = std::string([value UTF8String]);
 }
 
 - (NSInteger)connectionTimeout {
@@ -415,7 +416,8 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
 }
 
 - (BOOL)forceCiphersuitesAESCBC {
-    return _config.forceAesCbcCiphersuites;
+//    return _config.forceAesCbcCiphersuites;
+    return _config.forceCiphersuitesAESCBC;
 }
 
 - (void)setForceCiphersuitesAESCBC:(BOOL)forceCiphersuitesAESCBC {

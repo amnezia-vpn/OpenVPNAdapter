@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -65,8 +65,13 @@ namespace openvpn {
 	return new ClientConfig;
       }
 
-      virtual TransportClient::Ptr new_transport_client_obj(openvpn_io::io_context& io_context,
-							    TransportClientParent* parent);
+      TransportClient::Ptr new_transport_client_obj(openvpn_io::io_context& io_context,
+						    TransportClientParent* parent) override;
+
+      void process_push(const OptionList& opt) override
+      {
+	remote_list->process_push(opt);
+      }
 
     private:
       ClientConfig()
@@ -158,6 +163,16 @@ namespace openvpn {
       IP::Addr server_endpoint_addr() const override
       {
 	return IP::Addr::from_asio(server_endpoint.address());
+      }
+
+      unsigned short server_endpoint_port() const override
+      {
+	return server_endpoint.port();
+      }
+
+      int native_handle() override
+      {
+	return socket.native_handle();
       }
 
       Protocol transport_protocol() const override
@@ -253,7 +268,7 @@ namespace openvpn {
 
       // do DNS resolve
       void resolve_callback(const openvpn_io::error_code& error,
-			    openvpn_io::ip::tcp::resolver::results_type results) override
+			    results_type results) override
       {
 	if (!halt)
 	  {

@@ -77,7 +77,9 @@ Using cli with ovpn-dco
 """""""""""""""""""""""
 
 ovpn-dco is a kernel module which optimises data channel encryption and
-transport, providing better performance.
+transport, providing better performance. The cli will detect when the
+kernel module is available and enable dco automatically (use --no-dco
+to disable this).
 
 Download, build and install ovpn-dco:
 ::
@@ -98,97 +100,82 @@ Build cli with ovpn-dco support:
 
     $ cd $O3/core/build
     $ cmake -DCLI_OVPNDCO=on .. && make
-    $ sudo test/ovpncli/ovpncliovpndco --dco myprofile.ovpn
+    $ sudo test/ovpncli/ovpncli [--no-dco] myprofile.ovpn
 
-Options used:
+Options:
 
 - :code:`myprofile.ovpn` : OpenVPN config file (must have .ovpn extension)
-- :code:`--dco`          : enable data channel offload
+- :code:`--no-dco`       : disable data channel offload (optional)
 
 
-Building the OpenVPN 3 client on Mac OS X
------------------------------------------
+Building the OpenVPN 3 client on macOS
+--------------------------------------
 
-OpenVPN 3 should be built in a non-root Mac OS X account.
+OpenVPN 3 should be built in a non-root macOS account.
 Make sure that Xcode is installed with optional command-line tools.
-(These instructions have been tested with Xcode 5.1.1).
 
-Create the directories ``~/src`` and ``~/src/mac``:
+Create the directory ``~/src``:
 ::
 
-      $ mkdir -p ~/src/mac
+      $ mkdir -p ~/src
 
 Clone the OpenVPN 3 repo:
 ::
 
       $ cd ~/src
-      $ mkdir ovpn3
-      $ cd ovpn3
-      $ git clone https://github.com/OpenVPN/openvpn3.git core
+      $ git clone https://github.com/OpenVPN/openvpn3.git openvpn3
 
-Export the shell variable ``O3`` to point to the OpenVPN 3 top level
-directory:
+
+Install the dependencies:
+
+Ensure that [homebrew](https://brew.sh/) is set up.
+
 ::
 
-      $ export O3=~/src/ovpn3
-
-Download source tarballs (``.tar.gz`` or ``.tgz``) for these dependency
-libraries into ``~/Downloads``
-
-See the file ``$O3/core/deps/lib-versions`` for the expected
-version numbers of each dependency.  If you want to use a different
-version of the library than listed here, you can edit this file.
-
-1. Asio - https://github.com/chriskohlhoff/asio
-2. mbed TLS (2.3.0 or higher) - https://tls.mbed.org/
-3. LZ4 - https://github.com/Cyan4973/lz4
-
-For dependencies that are typically cloned from github vs.
-provided as a .tar.gz file, tools are provided to convert
-the github to a .tar.gz file.  See "snapshot" scripts under
-``$O3/core/deps``
-
-Note that while OpenSSL is listed in lib-versions, it is
-not required for Mac builds.
-
-Build the dependencies:
-::
-
-    $ DL=~/Downloads
-    $ OSX_ONLY=1 $O3/core/scripts/mac/build-all
+    $  brew install asio cmake jsoncpp lz4 openssl pkg-config
 
 Now build the OpenVPN 3 client executable:
+
+On a ARM64 based Mac:
 ::
 
-    $ cd $O3/core
-    $ . vars/vars-osx64
-    $ . vars/setpath
-    $ cd test/ovpncli
-    $ MTLS=1 LZ4=1 ASIO=1 build cli
+    $ cd ~/src/
+    $ mkdir build-openvpn3
+    $ cd build-openvpn3
+    $ cmake -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl -DCMAKE_PREFIX_PATH=/opt/homebrew ~/src/openvpn3
+    $ cmake --build .
+
+For a build on a Intel based Mac:
+::
+
+    $ cd ~/src/
+    $ mkdir build-openvpn3
+    $ cd build-openvpn3
+    $ cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_PREFIX_PATH=/usr/local/opt ~/src/openvpn3
+    $ cmake --build .
 
 This will build the OpenVPN 3 client library with a small client
-wrapper (``cli``).  It will also statically link in all external
-dependencies (Asio, mbed TLS, and LZ4), so ``cli`` may be distributed
-to other Macs and will run as a standalone executable.
+wrapper (``ovpncli``) and the unit tests.
 
-These build scripts will create a **x86_x64** Mac OS X executable,
-with a minimum deployment target of 10.8.x.  The Mac OS X tuntap driver is not
-required, as OpenVPN 3 can use the integrated utun interface if
-available.
+These build scripts will create binaries with the same architecture as the host it is
+running on. The Mac OS X tuntap driver is not required, as OpenVPN 3 can use the integrated
+utun interface if available.
 
 To view the client wrapper options:
 ::
 
-    $ ./cli -h
+    $ ./test/ovpncli/ovpncli -h
 
 To connect:
 ::
 
-    $ ./cli client.ovpn
+    $ ./test/ovpncli/ovpncli client.ovpn
 
 
 Building the OpenVPN 3 client on Windows
 ----------------------------------------
+
+.. image:: ../../../actions/workflows/msbuild.yml/badge.svg
 
 Prerequisites:
 
@@ -196,20 +183,10 @@ Prerequisites:
 * CMake
 * vcpkg
 
-Download and build dependencies:
 ::
 
-    > git clone https://github.com/Microsoft/vcpkg.git
-    > cd vcpkg
-    > bootstrap-vcpkg.bat
-    > vcpkg integrate install
-    > vcpkg install openssl-windows:x64-windows asio:x64-windows tap-windows6:x64-windows lz4:x64-windows gtest:x64-windows
-
-Download and build core test client:
-::
-
-    > git clone https://github.com/OpenVPN/openvpn3.git
-    > cmake -DCMAKE_TOOLCHAIN_FILE=<path_to_vcpkg>\scripts\buildsystems\vcpkg.cmake -A x64 -B build openvpn3
+    > git clone https://github.com/OpenVPN/openvpn3.git core && cd core
+    > cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=<path_to_vcpkg>\scripts\buildsystems\vcpkg.cmake -DVCPKG_OVERLAY_PORTS=deps\vcpkg-ports
     > cmake --build build --config Release --target ovpncli
 
 Testing
@@ -231,12 +208,13 @@ The test code itself is here: `<test/ssl/proto.cpp>`_
 Build the test:
 ::
 
-    $ cd ovpn3/core/test/ssl
-    $ ECHO=1 PROF=linux ASIO_DIR=~/asio MTLS_SYS=1 NOSSL=1 $O3/core/scripts/build proto
+    $ cd $O3
+    $ cmake --build . -- test/ssl/proto
 
 Run the test:
 ::
 
+    $ cd test/ssl
     $ time ./proto
     *** app bytes=72777936 net_bytes=122972447 data_bytes=415892854 prog=0000216599/0000216598 D=12700/600/12700/600 N=109/109 SH=17400/15300 HE=0/0
 
@@ -248,36 +226,13 @@ The OpenVPN 3 core also includes unit tests, which are based on
 Google Test framework. To run unit tests, you need to install
 CMake and build Google Test.
 
-Building Google Test on Linux:
-::
-
-    $ git clone https://github.com/google/googletest.git
-    $ cd googletest
-    $ cmake . && cmake --build .
-
-Building Google Test on Windows:
-::
-
-    > git clone https://github.com/google/googletest.git
-    > cd googletest
-    > cmake -G "Visual Studio 14 2015 Win64" .
-    > cmake --build .
-
-After Google Test is built you are ready to build and run unit tests.
-
 Build and run tests on Linux:
 ::
 
-    $ cd ovpn3/core/test/unittests
-    $ GTEST_DIR=~/googletest ECHO=1 PROF=linux ASIO_DIR=~/asio MTLS_SYS=1 LZ4_SYS=1 NOSSL=1 $O3/core/scripts/build test_log
-    $ ./test_log
+    $ cd $O3/core/build
+    $ cmake --build . -- test/unittests/coreUnitTests
+    $ ./test/unittests/coreUnitTests
 
-Build and run tests on Windows:
-::
-
-    $ cd ovpn3/core/win
-    $ python build.py ../test/unittests/test_log.cpp unittest
-    $ test_log.exe
 
 
 Developer Guide

@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -211,7 +211,7 @@ namespace openvpn {
 	if (!Base::primary_defined())
 	  return false;
 	try {
-	  OPENVPN_LOG_SERVPROTO("Transport RECV[" << buf.size() << "] " << client_endpoint_render() << ' ' << Base::dump_packet(buf));
+	  OPENVPN_LOG_SERVPROTO(instance_name() << " : Transport RECV[" << buf.size() << "] " << client_endpoint_render() << ' ' << Base::dump_packet(buf));
 
 	  // update current time
 	  Base::update_now();
@@ -232,7 +232,7 @@ namespace openvpn {
 		  // make packet appear as incoming on tun interface
 		  if (true) // fixme: was tun
 		    {
-		      OPENVPN_LOG_SERVPROTO("TUN SEND[" << buf.size() << ']');
+		      OPENVPN_LOG_SERVPROTO(instance_name() << " : TUN SEND[" << buf.size() << ']');
 		      // fixme -- code me
 		    }
 		}
@@ -306,8 +306,8 @@ namespace openvpn {
 	  housekeeping_timer(io_context_arg),
 	  disconnect_at(Time::infinite()),
 	  stats(factory.stats),
-	  man_factory(man_factory_arg),
-	  tun_factory(tun_factory_arg)
+	  man_factory(std::move(man_factory_arg)),
+	  tun_factory(std::move(tun_factory_arg))
       {}
 
       bool defined_() const
@@ -318,7 +318,7 @@ namespace openvpn {
       // proto base class calls here for control channel network sends
       virtual void control_net_send(const Buffer& net_buf) override
       {
-	OPENVPN_LOG_SERVPROTO("Transport SEND[" << net_buf.size() << "] " << client_endpoint_render() << ' ' << Base::dump_packet(net_buf));
+	OPENVPN_LOG_SERVPROTO(instance_name() << " : Transport SEND[" << net_buf.size() << "] " << client_endpoint_render() << ' ' << Base::dump_packet(net_buf));
 	if (TransportLink::send)
 	  {
 	    if (TransportLink::send->transport_send_const(net_buf))
@@ -364,7 +364,7 @@ namespace openvpn {
 	  }
 	else
 	  {
-	    OPENVPN_LOG("Unrecognized client request: " << msg);
+	    OPENVPN_LOG(instance_name() << " : Unrecognized client request: " << msg);
 	  }
       }
 
@@ -518,7 +518,7 @@ namespace openvpn {
 	    }
 	  }
 
-	OPENVPN_LOG("Disconnect: " << ts << ' ' << reason);
+	OPENVPN_LOG(instance_name() << " : Disconnect: " << ts << ' ' << reason);
 
 	if (Base::primary_defined())
 	  {
@@ -571,6 +571,12 @@ namespace openvpn {
       {
 	if (ManLink::send)
 	  ManLink::send->float_notify(addr);
+      }
+
+      virtual void ipma_notify(const struct ovpn_tun_head_ipma& ipma) override
+      {
+	if (ManLink::send)
+	  ManLink::send->ipma_notify(ipma);
       }
 
       virtual void data_limit_notify(const int key_id,
@@ -689,7 +695,7 @@ namespace openvpn {
 
       void error(const std::string& error)
       {
-	OPENVPN_LOG("ServerProto: " << error);
+	OPENVPN_LOG(instance_name() << " : ServerProto: " << error);
 	stop();
       }
 
@@ -715,6 +721,14 @@ namespace openvpn {
 	    error(std::string("Session invalidated: ") + Error::name(err));
 	    break;
 	  }
+      }
+
+      std::string instance_name() const
+      {
+	if (ManLink::send)
+	  return ManLink::send->instance_name();
+	else
+	  return "UNNAMED_CLIENT";
       }
 
       // higher values are higher priority

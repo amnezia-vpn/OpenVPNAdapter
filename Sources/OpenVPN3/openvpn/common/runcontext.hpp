@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -24,13 +24,14 @@
 // To stress test this code, in client after serv->start() add:
 //   if (unit == 3 || unit == 5)
 //     throw Exception("HIT IT");
-// And after "case PThreadBarrier::ERROR:"
+// And after "case PThreadBarrier::ERROR_SIGNAL:"
 //   if (unit & 1)
 //     break;
 
 #ifndef OPENVPN_COMMON_RUNCONTEXT_H
 #define OPENVPN_COMMON_RUNCONTEXT_H
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <thread>
@@ -47,6 +48,7 @@
 #include <openvpn/common/environ.hpp>
 #include <openvpn/common/number.hpp>
 #include <openvpn/common/signal_name.hpp>
+#include <openvpn/common/pthreadcond.hpp>
 #include <openvpn/asio/asiosignal.hpp>
 #include <openvpn/time/time.hpp>
 #include <openvpn/time/asiotimer.hpp>
@@ -127,6 +129,11 @@ namespace openvpn {
       signals.reset(new ASIOSignals(io_context));
       signal_rearm();
       schedule_debug_exit();
+    }
+
+    openvpn_io::io_context* io_context_ptr()
+    {
+      return &io_context;
     }
 
     void set_async_stop(Stop* async_stop)
@@ -247,6 +254,26 @@ namespace openvpn {
 	      threadlist[i] = nullptr;
 	    }
 	}
+    }
+
+    template <typename SVC>
+    void process_exception(const std::string& thread_name,
+			   const unsigned int unit,
+			   const bool io_context_run_called,
+			   openvpn_io::io_context& io_context,
+			   SVC& svc,
+			   PThreadBarrier& event_loop_bar,
+			   const std::exception& e)
+    {
+      event_loop_bar.error();
+      if (svc)
+	{
+	  clear_server(unit);
+	  svc->stop();      // on exception, stop service,
+	}
+      if (io_context_run_called)
+	io_context.poll();   //   execute completion handlers,
+      OPENVPN_LOG(thread_name << " thread exception: " << e.what());
     }
 
     virtual void log(const std::string& str) override

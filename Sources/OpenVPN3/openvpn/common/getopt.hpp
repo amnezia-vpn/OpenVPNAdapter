@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-4-Clause-UC */
+/* Source: pkg:generic/netbsd?download_url=http%3A%2F%2Fcvsweb.netbsd.org%2Fbsdweb.cgi%2F~checkout~%2Fsrc%2Flib%2Flibc%2Fstdlib%2Fgetopt_long.c%3Frev%3D1.1#src/lib/libc/stdlib/getopt_long.c */
 /*
  * Copyright (c) 1987, 1993, 1994, 1996
  *	The Regents of the University of California.  All rights reserved.
@@ -10,11 +12,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
+ * 3. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
