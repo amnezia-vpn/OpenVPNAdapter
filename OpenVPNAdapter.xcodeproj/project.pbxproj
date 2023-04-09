@@ -1563,6 +1563,8 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = OpenVPNAdapter;
+				VALID_ARCHS = arm64;
+				"VALID_ARCHS[arch=*]" = arm64;
 				"VALID_ARCHS[sdk=iphoneos*]" = arm64;
 			};
 			name = Debug;
@@ -1597,6 +1599,8 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = OpenVPNAdapter;
+				VALID_ARCHS = arm64;
+				"VALID_ARCHS[arch=*]" = arm64;
 				"VALID_ARCHS[sdk=iphoneos*]" = arm64;
 			};
 			name = Release;
