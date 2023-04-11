@@ -50,7 +50,7 @@
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "NO"
+            buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
@@ -59,6 +59,20 @@
                BlueprintIdentifier = "OpenVPNAdapter::OpenVPNAdapter"
                BuildableName = "OpenVPNAdapter.framework"
                BlueprintName = "OpenVPNAdapter"
+               ReferencedContainer = "container:OpenVPNAdapter.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C97E5FCC24123F2E005C2EBC"
+               BuildableName = "OpenVPNAdapterTests.xctest"
+               BlueprintName = "OpenVPNAdapterTests"
                ReferencedContainer = "container:OpenVPNAdapter.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -71,21 +85,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       disableMainThreadChecker = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C97E5FCC24123F2E005C2EBC"
-               BuildableName = "OpenVPNAdapterTests.xctest"
-               BlueprintName = "OpenVPNAdapterTests"
-               ReferencedContainer = "container:OpenVPNAdapter.xcodeproj">
-            </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "OpenVPNReachabilityTests">
-               </Test>
-            </SkippedTests>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
