@@ -13,10 +13,11 @@ CLANG_CXX_LIBRARY = libc++
 IPHONEOS_DEPLOYMENT_TARGET = 9.0
 
 SDKROOT[arch=arm64] = iphoneos
-SDKROOT[arch=armv7] = iphoneos
-SDKROOT[arch=armv7s] = iphoneos
+//SDKROOT[arch=armv7] = iphoneos
+//SDKROOT[arch=armv7s] = iphoneos
 
-VALID_ARCHS[sdk=iphoneos*] = arm64 armv7 armv7s
+VALID_ARCHS[sdk=iphoneos*] = arm64
+// armv7 armv7s
 VALID_ARCHS[sdk=iphonesimulator*] = i386 x86_64
 
 ////////////////////////////////////////////////////////////////////////////////
