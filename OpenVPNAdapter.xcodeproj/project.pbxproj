@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7BFD7A7D29E5B93E0066D7CC /* arm64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BFD7A7C29E5B9320066D7CC /* arm64.a */; };
 		7BFD7A7E29E5BCE30066D7CC /* arm64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BFD7A7C29E5B9320066D7CC /* arm64.a */; };
 		7BFD7A8029E5BEF90066D7CC /* ovpncli.mm in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_73 /* ovpncli.mm */; };
+		7BFD7ABB29E6F8290066D7CC /* ck-ovpn-plugin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */; };
 		C910EAE524EBB1DA0081AF13 /* OpenVPNReachabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97E5FD624123F48005C2EBC /* OpenVPNReachabilityTests.swift */; };
 		C910EAE724EBB5210081AF13 /* OpenVPNConfigurationEvaluation.h in Headers */ = {isa = PBXBuildFile; fileRef = C910EAE624EBB5210081AF13 /* OpenVPNConfigurationEvaluation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C910EAEE24EBBFB60081AF13 /* client.crt in Resources */ = {isa = PBXBuildFile; fileRef = C910EAEB24EBBFB60081AF13 /* client.crt */; };
@@ -60,8 +60,8 @@
 		C97E5FE024123F48005C2EBC /* VPNProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97E5FDA24123F48005C2EBC /* VPNProfile.swift */; };
 		C97E5FE124123F48005C2EBC /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97E5FDB24123F48005C2EBC /* Bundle.swift */; };
 		C97E5FE624124B0E005C2EBC /* Umbrella-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = C97E5FBA2412344D005C2EBC /* Umbrella-Header.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		C97E5FE724124B6F005C2EBC /* LZ4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::LZ4::Product" /* LZ4.framework */; };
-		C97E5FEC24124B73005C2EBC /* mbedTLS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */; };
+		C97E5FE724124B6F005C2EBC /* LZ4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::LZ4::Product" /* LZ4.framework */; platformFilter = ios; };
+		C97E5FEC24124B73005C2EBC /* mbedTLS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */; platformFilter = ios; };
 		C9EABF3124110BE200D828D4 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9EABF3024110BE200D828D4 /* SystemConfiguration.framework */; };
 		OBJ_250 /* lz4.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_16 /* lz4.c */; };
 		OBJ_251 /* lz4frame.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_17 /* lz4frame.c */; };
@@ -108,8 +108,8 @@
 		OBJ_301 /* OpenVPNSessionToken.h in Headers */ = {isa = PBXBuildFile; fileRef = OBJ_69 /* OpenVPNSessionToken.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		OBJ_302 /* OpenVPNCertificate.h in Headers */ = {isa = PBXBuildFile; fileRef = OBJ_70 /* OpenVPNCertificate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		OBJ_304 /* OpenVPNClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::OpenVPNClient::Product" /* OpenVPNClient.framework */; };
-		OBJ_324 /* mbedTLS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */; };
-		OBJ_325 /* LZ4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::LZ4::Product" /* LZ4.framework */; };
+		OBJ_324 /* mbedTLS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */; platformFilter = ios; };
+		OBJ_325 /* LZ4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::LZ4::Product" /* LZ4.framework */; platformFilter = ios; };
 		OBJ_332 /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_85 /* aes.c */; };
 		OBJ_333 /* aesni.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_86 /* aesni.c */; };
 		OBJ_334 /* arc4.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_87 /* arc4.c */; };
@@ -513,10 +513,10 @@
 			buildActionMask = 0;
 			files = (
 				OBJ_304 /* OpenVPNClient.framework in Frameworks */,
-				7BFD7A7D29E5B93E0066D7CC /* arm64.a in Frameworks */,
 				C9EABF3124110BE200D828D4 /* SystemConfiguration.framework in Frameworks */,
 				C97E5FEC24124B73005C2EBC /* mbedTLS.framework in Frameworks */,
 				C97E5FE724124B6F005C2EBC /* LZ4.framework in Frameworks */,
+				7BFD7ABB29E6F8290066D7CC /* ck-ovpn-plugin.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1333,11 +1333,13 @@
 		};
 		C97E5FEA24124B6F005C2EBC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = "OpenVPNAdapter::LZ4" /* LZ4 */;
 			targetProxy = C97E5FE924124B6F005C2EBC /* PBXContainerItemProxy */;
 		};
 		C97E5FEF24124B73005C2EBC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = "OpenVPNAdapter::mbedTLS" /* mbedTLS */;
 			targetProxy = C97E5FEE24124B73005C2EBC /* PBXContainerItemProxy */;
 		};
@@ -1348,11 +1350,13 @@
 		};
 		OBJ_326 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = "OpenVPNAdapter::mbedTLS" /* mbedTLS */;
 			targetProxy = C9EABF2A2411076400D828D4 /* PBXContainerItemProxy */;
 		};
 		OBJ_327 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = "OpenVPNAdapter::LZ4" /* LZ4 */;
 			targetProxy = C9EABF2B2411076400D828D4 /* PBXContainerItemProxy */;
 		};
@@ -1569,7 +1573,9 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TARGET_NAME = OpenVPNAdapter;
 				VALID_ARCHS = arm64;
 				"VALID_ARCHS[arch=*]" = arm64;
@@ -1607,7 +1613,9 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TARGET_NAME = OpenVPNAdapter;
 				VALID_ARCHS = arm64;
 				"VALID_ARCHS[arch=*]" = arm64;
