@@ -835,7 +835,7 @@ namespace openvpn {
       EvalConfig eval;
       OpenVPNClientHelper::parse_config(config, eval, state->options);
       if (eval.error)
-	return eval;
+          return eval;
 
       // handle extra settings in config
       parse_extras(config, eval);

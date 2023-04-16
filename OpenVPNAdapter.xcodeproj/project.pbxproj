@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7BFD7A7E29E5BCE30066D7CC /* arm64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BFD7A7C29E5B9320066D7CC /* arm64.a */; };
+		7B7E1EA129E70FB400E76E6D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7E1EA029E70FB400E76E6D /* UIKit.framework */; };
 		7BFD7A8029E5BEF90066D7CC /* ovpncli.mm in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_73 /* ovpncli.mm */; };
 		7BFD7ABB29E6F8290066D7CC /* ck-ovpn-plugin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */; };
 		C910EAE524EBB1DA0081AF13 /* OpenVPNReachabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97E5FD624123F48005C2EBC /* OpenVPNReachabilityTests.swift */; };
@@ -230,10 +230,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7B777E2229E1C75200718406 /* ck-ovpn-plugin-arm64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "ck-ovpn-plugin-arm64.a"; sourceTree = "<group>"; };
 		7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "ck-ovpn-plugin.a"; sourceTree = "<group>"; };
-		7BFD7A7A29E475F80066D7CC /* ck-ovpn-plugin-arm64s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "ck-ovpn-plugin-arm64s.a"; sourceTree = "<group>"; };
-		7BFD7A7C29E5B9320066D7CC /* arm64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = arm64.a; sourceTree = "<group>"; };
+		7B7E1EA029E70FB400E76E6D /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS15.2.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		C910EAE624EBB5210081AF13 /* OpenVPNConfigurationEvaluation.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = OpenVPNConfigurationEvaluation.h; sourceTree = "<group>"; };
 		C910EAEB24EBBFB60081AF13 /* client.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = client.crt; sourceTree = "<group>"; };
 		C910EAEC24EBBFB60081AF13 /* ca.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ca.crt; sourceTree = "<group>"; };
@@ -290,7 +288,6 @@
 		C9EABF3224110E7500D828D4 /* ovpnapi.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ovpnapi.hpp; sourceTree = "<group>"; };
 		C9EABF3324110E7500D828D4 /* ovpncli.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = ovpncli.hpp; sourceTree = "<group>"; };
 		C9EABF492411133400D828D4 /* Project.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Project.xcconfig; sourceTree = "<group>"; };
-		C9EABF642411189800D828D4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.2.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		C9EABF7324111AEE00D828D4 /* OpenVPNClient.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = OpenVPNClient.xcconfig; sourceTree = "<group>"; };
 		C9EABF7424111D6100D828D4 /* OpenVPNAdapter.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = OpenVPNAdapter.xcconfig; sourceTree = "<group>"; };
 		C9EABF7524111E9C00D828D4 /* LZ4.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LZ4.xcconfig; sourceTree = "<group>"; };
@@ -513,6 +510,7 @@
 			buildActionMask = 0;
 			files = (
 				OBJ_304 /* OpenVPNClient.framework in Frameworks */,
+				7B7E1EA129E70FB400E76E6D /* UIKit.framework in Frameworks */,
 				C9EABF3124110BE200D828D4 /* SystemConfiguration.framework in Frameworks */,
 				C97E5FEC24124B73005C2EBC /* mbedTLS.framework in Frameworks */,
 				C97E5FE724124B6F005C2EBC /* LZ4.framework in Frameworks */,
@@ -524,7 +522,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 0;
 			files = (
-				7BFD7A7E29E5BCE30066D7CC /* arm64.a in Frameworks */,
 				OBJ_324 /* mbedTLS.framework in Frameworks */,
 				OBJ_325 /* LZ4.framework in Frameworks */,
 			);
@@ -568,11 +565,8 @@
 		C9EABF2F24110BE100D828D4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7BFD7A7C29E5B9320066D7CC /* arm64.a */,
-				7BFD7A7A29E475F80066D7CC /* ck-ovpn-plugin-arm64s.a */,
-				7B777E2229E1C75200718406 /* ck-ovpn-plugin-arm64.a */,
+				7B7E1EA029E70FB400E76E6D /* UIKit.framework */,
 				7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */,
-				C9EABF642411189800D828D4 /* UIKit.framework */,
 				C9EABF3024110BE200D828D4 /* SystemConfiguration.framework */,
 			);
 			name = Frameworks;
@@ -1566,6 +1560,7 @@
 					"$(PROJECT_DIR)",
 				);
 				MARKETING_VERSION = 0.8.0;
+				OPENVPN_PLUGGABLE_TRANSPORTS = 1;
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = OpenVPNAdapter;
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -1606,6 +1601,7 @@
 					"$(PROJECT_DIR)",
 				);
 				MARKETING_VERSION = 0.8.0;
+				OPENVPN_PLUGGABLE_TRANSPORTS = 1;
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = OpenVPNAdapter;
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
