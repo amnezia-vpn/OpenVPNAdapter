@@ -280,6 +280,7 @@ namespace openvpn {
 						  {
 						    self->config->stats->error(Error::SOCKET_PROTECT_ERROR);
 						    self->stop();
+							OPENVPN_LOG("ERROR " << error_code << " socket_protect error");
 						    self->parent->transport_error(Error::UNDEF, "socket_protect error");
 						    return;
 						  }
