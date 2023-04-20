@@ -31,7 +31,7 @@
 #include "ck-ovpn-plugin.h"
 
 #endif
-
+#include <openvpn/log/logthread.hpp>
 namespace openvpn {
 namespace PluggableTransports {
 
@@ -52,7 +52,6 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     if (*config == '\0') {
       return;
     }
-
     // Setup cloak config
     ret = Initialize_cloak_c_client(config);
 
