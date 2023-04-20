@@ -305,7 +305,7 @@ namespace openvpn {
 	  }
 	  catch (const std::exception& e)
 	  {
-		OPENVPN_LOG("exception " << e);
+		OPENVPN_LOG("exception ");
 	      error_code = Error::PT_CONNECT_ERROR;
 	      const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
 	      if (ec && ec->code_defined())
