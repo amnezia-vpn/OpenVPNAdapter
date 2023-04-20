@@ -58,7 +58,7 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     ret = Initialize_cloak_c_client(config);
 
     if (ret < 0) {
-      OPENVPN_LOG("ERROR Initialize_cloak_c_client " << std::to_string(ret));
+      OPENVPN_LOG("ERROR Initialize_cloak_c_client ");
       return;
     }
 
