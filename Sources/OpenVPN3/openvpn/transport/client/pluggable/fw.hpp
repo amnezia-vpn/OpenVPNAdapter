@@ -31,7 +31,7 @@
 #include "ck-ovpn-plugin.h"
 
 #endif
-#include <openvpn/log/logthread.hpp>
+// #include <openvpn/log/logthread.hpp>
 namespace openvpn {
 namespace PluggableTransports {
 
