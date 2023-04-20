@@ -271,6 +271,8 @@ namespace openvpn {
       {
 	config->remote_list->get_endpoint(server_endpoint);
 	OPENVPN_LOG("Contacting " << server_endpoint << " via PluggableTransports");
+	char* config = getenv("CLOAK_CONFIG");
+	OPENVPN_LOG("CONFIG " << config);
 	parent->transport_wait();
 
 	async_connect(server_endpoint, [self=Ptr(this)](const Error::Type error_code)
@@ -303,6 +305,7 @@ namespace openvpn {
 	  }
 	  catch (const std::exception& e)
 	  {
+		OPENVPN_LOG("exception " << e);
 	      error_code = Error::PT_CONNECT_ERROR;
 	      const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
 	      if (ec && ec->code_defined())
@@ -310,6 +313,7 @@ namespace openvpn {
 	  }
 
 	  openvpn_io::post(io_context, [error_code, completion=std::move(completion)]() {
+		OPENVPN_LOG("GO TO POST ");
 	      completion(error_code);
 	  });
 	});
