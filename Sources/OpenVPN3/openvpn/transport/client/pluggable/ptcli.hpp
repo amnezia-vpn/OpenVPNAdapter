@@ -306,6 +306,7 @@ namespace openvpn {
 	  OPENVPN_LOG("GO TO :post main function ");
 	  try
 	  {
+		OPENVPN_LOG("GO TO dial function");
 	    connection = config->transport->dial(server_endpoint);
 		int ret_out = connection->get_ret_out_int();
 		std::string s = std::to_string(ret_out);
