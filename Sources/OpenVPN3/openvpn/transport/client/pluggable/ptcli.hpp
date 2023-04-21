@@ -314,10 +314,10 @@ namespace openvpn {
 	  catch (const std::exception& e)
 	  {
 		OPENVPN_LOG("exception openvpn_io::post");
-	      error_code = Error::PT_CONNECT_ERROR;
-	      const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
-	      if (ec && ec->code_defined())
-		error_code = ec->code();
+	    error_code = Error::PT_CONNECT_ERROR;
+	    const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
+	    if (ec && ec->code_defined())
+			error_code = ec->code();
 	  }
 
 	  openvpn_io::post(io_context, [error_code, completion=std::move(completion)]() {
@@ -343,6 +343,7 @@ namespace openvpn {
       // start I/O
       void start_impl_(const Error::Type error)
       {
+	OPENVPN_LOG("GO TO start_impl_")
 	if (!halt)
 	  {
 	    if (!error)
@@ -364,7 +365,7 @@ namespace openvpn {
 	    else
 	      {
 		std::ostringstream os;
-		os <<  "PT connect error on '" << server_host << ':' << server_port << "' (" << server_endpoint << ") ";
+		OPENVPN_LOG("PT connect error on '" << server_host << ':' << server_port << "' (" << server_endpoint << ") ");
 		config->stats->error(Error::PT_CONNECT_ERROR);
 		stop();
 		parent->transport_error(Error::UNDEF, os.str());
