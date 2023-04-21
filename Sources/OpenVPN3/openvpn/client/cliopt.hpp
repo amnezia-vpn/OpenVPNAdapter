@@ -197,7 +197,7 @@ namespace openvpn {
 	reconnect_notify(config.reconnect_notify),
 	cli_stats(config.cli_stats),
 	cli_events(config.cli_events),
-	server_poll_timeout_(10),
+	server_poll_timeout_(100),
 	server_override(config.server_override),
 	port_override(config.port_override),
 	proto_override(config.proto_override),
