@@ -322,8 +322,10 @@ namespace openvpn {
 	  }
 
 	  openvpn_io::post(io_context, [error_code, completion=std::move(completion)]() {
-		  OPENVPN_LOG("GO TO POST ");
-	      completion(error_code);
+		OPENVPN_LOG("GO TO dial function new extent");
+		connection = config->transport->dial(server_endpoint);
+		OPENVPN_LOG("GO TO POST ");
+		completion(error_code);
 	  });
 	});
       }
