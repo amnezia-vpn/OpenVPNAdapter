@@ -39,6 +39,7 @@ namespace openvpn {
       virtual size_t receive(const openvpn_io::mutable_buffer& buffer) = 0;
       virtual void close() = 0;
       virtual int native_handle() = 0;
+      virtual int get_ret_out_int() = 0;
     };
 
     struct Transport: public RC<thread_unsafe_refcount>
