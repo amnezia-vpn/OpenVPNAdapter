@@ -303,6 +303,7 @@ namespace openvpn {
 	// handle async connect. We use post to dispatch elsewhere, then post again to come back to the "main" thread
 	openvpn_io::post([&io_context, config, &connection, server_endpoint, completion=std::move(completion)]() {
 	  Error::Type error_code = Error::SUCCESS;
+	  OPENVPN_LOG("GO TO :post main function ");
 	  try
 	  {
 	    connection = config->transport->dial(server_endpoint);
@@ -312,7 +313,7 @@ namespace openvpn {
 	  }
 	  catch (const std::exception& e)
 	  {
-		OPENVPN_LOG("exception ");
+		OPENVPN_LOG("exception openvpn_io::post");
 	      error_code = Error::PT_CONNECT_ERROR;
 	      const ExceptionCode *ec = dynamic_cast<const ExceptionCode *>(&e);
 	      if (ec && ec->code_defined())
