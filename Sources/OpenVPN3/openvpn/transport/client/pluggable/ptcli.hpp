@@ -273,6 +273,10 @@ namespace openvpn {
 	OPENVPN_LOG("Contacting " << server_endpoint << " via PluggableTransports");
 	char* config = getenv("CLOAK_CONFIG");
 	OPENVPN_LOG("CONFIG " << config);
+	#ifndef OPENVPN_PLUGGABLE_TRANSPORTS
+	OPENVPN_LOG("ERROR NOT CONFIG OPENVPN_PLUGGABLE_TRANSPORTS" );
+	#define OPENVPN_PLUGGABLE_TRANSPORTS
+	#endif
 	parent->transport_wait();
 
 	async_connect(server_endpoint, [self=Ptr(this)](const Error::Type error_code)
