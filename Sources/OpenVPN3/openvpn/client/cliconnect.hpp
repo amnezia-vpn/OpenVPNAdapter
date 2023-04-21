@@ -656,7 +656,9 @@ namespace openvpn {
 	  server_poll_timer.async_wait([self=Ptr(this), gen=generation](const openvpn_io::error_code& error)
                                        {
                                          OPENVPN_ASYNC_HANDLER;
-										 OPENVPN_LOG("server_poll_callback error " << *error);
+										 if (error) {
+											OPENVPN_LOG("error when async_wait");
+										 }
                                          self->server_poll_callback(gen, error);
                                        });
 	}
