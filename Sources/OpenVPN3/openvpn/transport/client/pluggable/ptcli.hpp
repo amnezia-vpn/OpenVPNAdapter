@@ -343,7 +343,7 @@ namespace openvpn {
       // start I/O
       void start_impl_(const Error::Type error)
       {
-	OPENVPN_LOG("GO TO start_impl_")
+	OPENVPN_LOG("GO TO start_impl_");
 	if (!halt)
 	  {
 	    if (!error)
