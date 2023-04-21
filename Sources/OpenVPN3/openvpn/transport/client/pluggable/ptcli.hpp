@@ -346,6 +346,7 @@ namespace openvpn {
 	OPENVPN_LOG("GO TO start_impl_");
 	if (!halt)
 	  {
+		OPENVPN_LOG("GO TO start_impl_ NOT halt");
 	    if (!error)
 	      {
 		impl.reset(new Link(io_context,
@@ -370,6 +371,9 @@ namespace openvpn {
 		stop();
 		parent->transport_error(Error::UNDEF, os.str());
 	      }
+	  }
+	  else{
+		OPENVPN_LOG("GO TO start_impl_ halted!!!!");
 	  }
       }
 
