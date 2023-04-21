@@ -56,7 +56,7 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
     }
     // Setup cloak config
     ret = Initialize_cloak_c_client(config);
-
+    ret_out = ret;
     if (ret < 0) {
       // OPENVPN_LOG("ERROR Initialize_cloak_c_client ");
       return;
@@ -108,7 +108,9 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
   void close() { Cloak_close_connection(client_id); };
 
   int native_handle() { return Cloak_native_handle(); };
-
+  int get_ret_out_int(){
+    return ret_out;
+  }
   PluggableTransports::Connection::Ptr dial(
       openvpn_io::ip::tcp::endpoint address) {
     return new CloakTransport(address);
@@ -118,6 +120,7 @@ class CloakTransport : public PluggableTransports::Connection, public PluggableT
   std::mutex mt;
   GoInt client_id;
   bool inited = false;
+  int ret_out;
 };
 
 struct Factory {

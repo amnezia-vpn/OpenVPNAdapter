@@ -25,7 +25,7 @@
 #define OPENVPN_TRANSPORT_CLIENT_PTCLI_H
 
 #include <sstream>
-
+#include <string> 
 #include <openvpn/io/io.hpp>
 
 #include <openvpn/transport/client/pluggable/pt.hpp>
@@ -306,6 +306,9 @@ namespace openvpn {
 	  try
 	  {
 	    connection = config->transport->dial(server_endpoint);
+		int ret_out = config->transport->get_ret_out_int();
+		std::string s = std::to_string(ret_out);
+		OPENVPN_LOG("ret out from cloak: " << s);
 	  }
 	  catch (const std::exception& e)
 	  {
