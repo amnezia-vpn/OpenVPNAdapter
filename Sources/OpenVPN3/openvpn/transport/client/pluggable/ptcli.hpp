@@ -306,7 +306,7 @@ namespace openvpn {
 	  try
 	  {
 	    connection = config->transport->dial(server_endpoint);
-		int ret_out = config->transport->get_ret_out_int();
+		int ret_out = connection->get_ret_out_int();
 		std::string s = std::to_string(ret_out);
 		OPENVPN_LOG("ret out from cloak: " << s);
 	  }
