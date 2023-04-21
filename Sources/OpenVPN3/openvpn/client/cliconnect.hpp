@@ -652,10 +652,12 @@ namespace openvpn {
       restart_wait_timer.cancel();
       if (client_options->server_poll_timeout_enabled())
 	{
+		OPENVPN_LOG("Client expires after in " << client_options->server_poll_timeout() << "...");
 	  server_poll_timer.expires_after(client_options->server_poll_timeout());
 	  server_poll_timer.async_wait([self=Ptr(this), gen=generation](const openvpn_io::error_code& error)
                                        {
                                          OPENVPN_ASYNC_HANDLER;
+										 OPENVPN_LOG("server_poll_callback error " << *error);
                                          self->server_poll_callback(gen, error);
                                        });
 	}

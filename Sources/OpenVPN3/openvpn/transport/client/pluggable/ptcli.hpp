@@ -317,7 +317,7 @@ namespace openvpn {
 	  }
 
 	  openvpn_io::post(io_context, [error_code, completion=std::move(completion)]() {
-		OPENVPN_LOG("GO TO POST ");
+		  OPENVPN_LOG("GO TO POST ");
 	      completion(error_code);
 	  });
 	});
