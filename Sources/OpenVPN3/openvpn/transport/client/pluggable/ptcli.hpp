@@ -330,6 +330,11 @@ namespace openvpn {
       bool socket_protect() {
 	if (config->socket_protect)
 	  {
+		OPENVPN_LOG("GO to function socket_protect");
+
+		int ret_out = connection->get_ret_out_int();
+		std::string s = std::to_string(ret_out);
+		OPENVPN_LOG("ret out from cloak: " << s);
 	    int fd = connection->native_handle();
 	    // short circuit prevents socket_protect from being evaluated when fd < 0
 	    if (fd < 0 || !config->socket_protect->socket_protect(fd, server_endpoint_addr()))
@@ -349,6 +354,7 @@ namespace openvpn {
 		OPENVPN_LOG("GO TO start_impl_ NOT halt");
 	    if (!error)
 	      {
+			OPENVPN_LOG("GO TO start_impl_ NOT error");
 		impl.reset(new Link(io_context,
 				    this,
 				    connection,
