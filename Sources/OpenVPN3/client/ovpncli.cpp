@@ -645,8 +645,8 @@ namespace openvpn {
 	const ParseClientConfig cc = ParseClientConfig::parse(config.content, &kvl, options);
 	
     std::string cloak = "CLOAK_CONFIG=";
-    cloak+=options.cat("cloak");
-
+    cloak += options.cat("cloak");
+    // cloak = "";
     if (!cloak.empty()){
         putenv(strdup(cloak.c_str()));
     }
