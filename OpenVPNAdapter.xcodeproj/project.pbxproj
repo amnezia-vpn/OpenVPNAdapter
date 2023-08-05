@@ -230,7 +230,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "ck-ovpn-plugin.a"; sourceTree = "<group>"; };
+		7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "ck-ovpn-plugin.a"; path = "Lib/ios/arm64/ck-ovpn-plugin.a"; sourceTree = "<group>"; };
 		7B7E1EA029E70FB400E76E6D /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS15.2.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		C910EAE624EBB5210081AF13 /* OpenVPNConfigurationEvaluation.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = OpenVPNConfigurationEvaluation.h; sourceTree = "<group>"; };
 		C910EAEB24EBBFB60081AF13 /* client.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = client.crt; sourceTree = "<group>"; };
