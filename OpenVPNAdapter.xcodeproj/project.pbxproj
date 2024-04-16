@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E51D4962BCE7A63006977DA /* ck-ovpn-plugin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */; };
 		7B7E1EA129E70FB400E76E6D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7E1EA029E70FB400E76E6D /* UIKit.framework */; };
 		7BFD7A8029E5BEF90066D7CC /* ovpncli.mm in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_73 /* ovpncli.mm */; };
-		9928766F2B7A981300BFF6F7 /* ck-ovpn-plugin.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7795A329DC896200D15D50 /* ck-ovpn-plugin.a */; };
 		C910EAE524EBB1DA0081AF13 /* OpenVPNReachabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97E5FD624123F48005C2EBC /* OpenVPNReachabilityTests.swift */; };
 		C910EAE724EBB5210081AF13 /* OpenVPNConfigurationEvaluation.h in Headers */ = {isa = PBXBuildFile; fileRef = C910EAE624EBB5210081AF13 /* OpenVPNConfigurationEvaluation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C910EAEE24EBBFB60081AF13 /* client.crt in Resources */ = {isa = PBXBuildFile; fileRef = C910EAEB24EBBFB60081AF13 /* client.crt */; };
@@ -512,7 +512,7 @@
 				OBJ_304 /* OpenVPNClient.framework in Frameworks */,
 				7B7E1EA129E70FB400E76E6D /* UIKit.framework in Frameworks */,
 				C9EABF3124110BE200D828D4 /* SystemConfiguration.framework in Frameworks */,
-				9928766F2B7A981300BFF6F7 /* ck-ovpn-plugin.a in Frameworks */,
+				4E51D4962BCE7A63006977DA /* ck-ovpn-plugin.a in Frameworks */,
 				C97E5FEC24124B73005C2EBC /* mbedTLS.framework in Frameworks */,
 				C97E5FE724124B6F005C2EBC /* LZ4.framework in Frameworks */,
 			);
