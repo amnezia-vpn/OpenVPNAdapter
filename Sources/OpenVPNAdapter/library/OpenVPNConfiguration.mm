@@ -419,15 +419,6 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     _config.defaultKeyDirection = keyDirection;
 }
 
-- (BOOL)forceCiphersuitesAESCBC {
-//    return _config.forceAesCbcCiphersuites;
-    return _config.forceCiphersuitesAESCBC;
-}
-
-- (void)setForceCiphersuitesAESCBC:(BOOL)forceCiphersuitesAESCBC {
-    _config.forceAesCbcCiphersuites = forceCiphersuitesAESCBC;
-}
-
 - (OpenVPNMinTLSVersion)minTLSVersion {
     NSString *currentValue = [NSString stringWithUTF8String:_config.tlsVersionMinOverride.c_str()];
     return [OpenVPNConfiguration getMinTLSFromValue:currentValue];
