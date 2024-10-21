@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -85,6 +85,7 @@ namespace openvpn {
 	  case CryptoAlgs::AES_256_CBC:
 	  case CryptoAlgs::BF_CBC:
 #ifdef ENABLE_OVPNDCO
+	  case CryptoAlgs::CHACHA20_POLY1305:
 	  case CryptoAlgs::NONE:
 #endif
 	    break;
@@ -137,8 +138,8 @@ namespace openvpn {
 
 #ifdef ENABLE_KOVPN
 #include <openvpn/kovpn/kovpnkocrypto.hpp>
-#elif ENABLE_OVPNDCO
+#elif defined(ENABLE_OVPNDCO) || defined(ENABLE_OVPNDCOWIN)
 #include <openvpn/dco/ovpndcokocrypto.hpp>
 #else
-#error either ENABLE_KOVPN or ENABLE_OVPNDCO must be defined
+#error either ENABLE_KOVPN, ENABLE_OVPNDCO or ENABLE_OVPNDCOWIN must be defined
 #endif

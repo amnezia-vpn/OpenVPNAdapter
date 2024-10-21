@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 DL="${DL:-/tmp/dl}"
 DEP_DIR_PREFIX=$PWD/deps
+CORE_DIR=$(dirname $(realpath -s $0))/../..
 CMAKE_C_COMPILER="w64-mingw32-gcc-posix"
 CMAKE_CXX_COMPILER="w64-mingw32-g++-posix"
 ARCH=${ARCH:-i686 x86_64}
@@ -19,20 +20,44 @@ download_deps()
 
     rm -rf lz4
     git clone https://github.com/lz4/lz4.git
+    portfile_url=https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/lz4/portfile.cmake
+    gitref=$(wget -q -O- "$portfile_url" | grep -oP '\bREF\s+\S+' | cut -d' ' -f2)
+    git -C lz4 checkout "${gitref}"
 
     rm -rf jsoncpp
     git clone https://github.com/open-source-parsers/jsoncpp.git
+    portfile_url=https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/jsoncpp/portfile.cmake
+    gitref=$(wget -q -O- "$portfile_url" | grep -oP '\bREF\s+\S+' | cut -d' ' -f2)
+    git -C jsoncpp checkout "${gitref}"
 
     if [ -z "$NO_OPENSSL" ]; then
         rm -rf openssl
-        git clone --single-branch --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git
+        portfile_url=https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/openssl/vcpkg.json
+        osslver=$(wget -q -O- "$portfile_url" | grep -oP '\"version": \"\S+' | cut -d' ' -f2 | tr -d "\",")
+        git clone --single-branch --branch "openssl-$osslver" https://github.com/openssl/openssl.git
     fi
 
     rm -rf tap-windows6
     git clone https://github.com/OpenVPN/tap-windows6.git
+    portfile_url=https://raw.githubusercontent.com/microsoft/vcpkg/master/ports/tap-windows6/portfile.cmake
+    gitref=$(wget -q -O- "$portfile_url" | grep -oP '\bREF\s+\S+' | cut -d' ' -f2)
+    git -C tap-windows6 checkout "${gitref}"
+
+    rm -rf ovpn-dco-win
+    git clone https://github.com/OpenVPN/ovpn-dco-win.git
+    portfile=${CORE_DIR}/deps/vcpkg-ports/ovpn-dco-win/portfile.cmake
+    gitref=$(grep -oP '\bREF\s+\S+' "$portfile" | cut -d' ' -f2)
+    git -C ovpn-dco-win checkout "${gitref}"
 
     rm -rf asio
-    git clone --single-branch --branch asio-1-16-1 https://github.com/chriskohlhoff/asio
+    portfile=${CORE_DIR}/deps/vcpkg-ports/asio/portfile.cmake
+    gitref=$(grep -oP '\bREF\s+\S+' "$portfile" | cut -d' ' -f2)
+    git clone --single-branch --branch "$gitref" https://github.com/chriskohlhoff/asio
+    # apply asio patches
+    for patchfile in $(grep -o patches.* "$portfile" | cut -d '\' -f3); do
+        echo applying patch $patchfile
+        patch -d asio -p1 < "${CORE_DIR}/deps/asio/patches/$patchfile"
+    done
 
     popd
 }
@@ -89,8 +114,8 @@ build_openssl()
 
     [ "$ARCH" == "x86_64" ] && OUT="mingw64" || OUT="mingw"
     make clean || true
-    ./Configure --prefix=$DEP_DIR_PREFIX-$ARCH no-idea no-mdc2 no-rc5 shared $OUT --cross-compile-prefix=$ARCH-w64-mingw32-
-    make && make -j1 install || true
+    ./Configure --prefix=$DEP_DIR_PREFIX-$ARCH --libdir=lib no-idea no-mdc2 no-rc5 shared $OUT --cross-compile-prefix=$ARCH-w64-mingw32-
+    make && make install
 
     popd
 }
@@ -100,6 +125,15 @@ build_tap_windows6()
     ARCH=$1
 
     cp $DL/tap-windows6/src/tap-windows.h $DEP_DIR_PREFIX-$ARCH/include
+}
+
+build_ovpn_dco_win()
+{
+    ARCH=$1
+    local DST_DIR="$DEP_DIR_PREFIX-$ARCH/include/ovpn-dco-win"
+
+    mkdir -p $DST_DIR
+    cp $DL/ovpn-dco-win/uapi.h $DST_DIR/
 }
 
 build_asio()
@@ -126,6 +160,7 @@ build_deps()
     build_lz4 $ARCH
     build_jsoncpp $ARCH
     build_tap_windows6 $ARCH
+    build_ovpn_dco_win $ARCH
     build_asio $ARCH
     build_openssl $ARCH
 }
@@ -139,7 +174,10 @@ build_core()
     rm -rf build-$ARCH
     mkdir build-$ARCH
 
-    CORE_DIR=$(dirname $(realpath -s $0))/../..
+    [ -z "$DCO" ] || {
+        WITH_OVPNDCOWIN="-D CLI_OVPNDCOWIN=ON \
+                         -D OVPN_DCO_WIN_INCLUDE_DIRS=$DEP_DIR_PREFIX-$ARCH"
+    }
 
     pushd build-$ARCH
 
@@ -151,6 +189,7 @@ build_core()
           -D CMAKE_PREFIX_PATH=/usr/local/$ARCH-w64-mingw32 \
           -D CMAKE_BUILD_TYPE=Release \
           -D USE_WERROR=true \
+          $WITH_OVPNDCOWIN \
           $CORE_DIR
 
     make

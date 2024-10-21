@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -49,7 +49,7 @@ namespace openvpn {
 	break;
       case PThreadBarrier::TIMEOUT:
 	throw Exception("event loop barrier timeout");
-      case PThreadBarrier::ERROR:
+      case PThreadBarrier::ERROR_SIGNAL:
 	throw Exception("event loop barrier error");
       }
   }

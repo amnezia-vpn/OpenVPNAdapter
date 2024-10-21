@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -30,6 +30,7 @@
 #include <openvpn/common/exception.hpp>
 #include <openvpn/crypto/static_key.hpp>
 #include <openvpn/crypto/cryptoalgs.hpp>
+#include <openvpn/crypto/definitions.hpp>
 
 namespace openvpn {
   template <typename CRYPTO_API>
@@ -71,7 +72,7 @@ namespace openvpn {
       return in_size + ctx.block_size();
     }
 
-    void init(const CryptoAlgs::Type cipher, const StaticKey& key, const int mode)
+    void init(SSLLib::Ctx libctx, const CryptoAlgs::Type cipher, const StaticKey& key, const int mode)
     {
       const CryptoAlgs::Alg& alg = CryptoAlgs::get(cipher);
 
@@ -84,7 +85,7 @@ namespace openvpn {
 	throw cipher_internal_error();
 
       // initialize cipher context with cipher type, key, and encrypt/decrypt mode
-      ctx.init(cipher, key.data(), mode);
+      ctx.init(libctx, cipher, key.data(), mode);
 
       // save mode in object
       mode_ = mode;

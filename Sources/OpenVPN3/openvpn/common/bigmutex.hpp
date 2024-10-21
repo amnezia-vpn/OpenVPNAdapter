@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -40,6 +40,8 @@ namespace openvpn {
   namespace bigmutex {
     OPENVPN_EXTERN std::recursive_mutex the_recursive_mutex;
   }
+
+#define OPENVPN_ENABLE_BIGMUTEX 1
 
   #ifdef OPENVPN_ENABLE_BIGMUTEX
     #define OPENVPN_ASYNC_HANDLER \

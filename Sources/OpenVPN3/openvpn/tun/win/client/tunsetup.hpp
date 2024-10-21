@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -68,9 +68,41 @@ namespace openvpn {
     public:
       typedef RCPtr<Setup> Ptr;
 
-      Setup(openvpn_io::io_context& io_context_arg, bool wintun_arg=false)
+      Setup(openvpn_io::io_context& io_context_arg, const Type tun_type, bool allow_local_dns_resolvers_arg)
 	: delete_route_timer(io_context_arg),
-	  wintun(wintun_arg) {}
+	  tun_type_(tun_type),
+      allow_local_dns_resolvers(allow_local_dns_resolvers_arg) {}
+
+      HANDLE get_handle(std::ostream& os) override
+      {
+	if (tap_.index_defined())
+	  // tap has already been opened
+	  return INVALID_HANDLE_VALUE;
+
+	// enumerate available TAP adapters
+	Util::TapNameGuidPairList guids(tun_type_);
+	os << "TAP ADAPTERS:" << std::endl
+	   << guids.to_string() << std::endl;
+
+	// open TAP device handle
+	std::string path_opened;
+	Win::ScopedHANDLE th(Util::tap_open(tun_type_, guids, path_opened, tap_));
+	os << "Open TAP device \"" + tap_.name + "\" PATH=\"" + path_opened + '\"';
+	if (!th.defined())
+	  {
+	    os << " FAILED" << std::endl;
+	    throw ErrorCode(Error::TUN_IFACE_CREATE, true, "cannot acquire TAP handle");
+	  }
+
+	os << " SUCCEEDED" << std::endl;
+	if (tun_type_ == TapWindows6)
+	  {
+	    Util::TAPDriverVersion version(th());
+	    os << version.to_string() << std::endl;
+	  }
+
+	return th.release();
+      }
 
       // Set up the TAP device
       virtual HANDLE establish(const TunBuilderCapture& pull,
@@ -82,29 +114,8 @@ namespace openvpn {
 	// close out old remove cmds, if they exist
 	destroy(os);
 
-	// enumerate available TAP adapters
-	Util::TapNameGuidPairList guids(wintun);
-	os << "TAP ADAPTERS:" << std::endl << guids.to_string() << std::endl;
-
-	// open TAP device handle
-	std::string path_opened;
-	Util::TapNameGuidPair tap;
-	Win::ScopedHANDLE th(Util::tap_open(guids, path_opened, tap, wintun));
-	const std::string msg = "Open TAP device \"" + tap.name + "\" PATH=\"" + path_opened + '\"';
-	vpn_interface_index_ = tap.index;
-
-	if (!th.defined())
-	  {
-	    os << msg << " FAILED" << std::endl;
-	    throw ErrorCode(Error::TUN_IFACE_CREATE, true, "cannot acquire TAP handle");
-	  }
-
-	os << msg << " SUCCEEDED" << std::endl;
-	if (!wintun)
-	  {
-	    Util::TAPDriverVersion version(th());
-	    os << version.to_string() << std::endl;
-	  }
+	Win::ScopedHANDLE th(get_handle(os));
+	vpn_interface_index_ = tap_.index;
 
 	// create ActionLists for setting up and removing adapter properties
 	ActionList::Ptr add_cmds(new ActionList());
@@ -114,10 +125,10 @@ namespace openvpn {
 	switch (pull.layer())
 	  {
 	  case Layer::OSI_LAYER_3:
-	    adapter_config(th(), openvpn_app_path, tap, pull, false, *add_cmds, *remove_cmds, os);
+	    adapter_config(th(), openvpn_app_path, tap_, pull, false, *add_cmds, *remove_cmds, os);
 	    break;
 	  case Layer::OSI_LAYER_2:
-	    adapter_config_l2(th(), openvpn_app_path, tap, pull, *add_cmds, *remove_cmds, os);
+	    adapter_config_l2(th(), openvpn_app_path, tap_, pull, *add_cmds, *remove_cmds, os);
 	    break;
 	  default:
 	    throw tun_win_setup("layer undefined");
@@ -131,13 +142,13 @@ namespace openvpn {
 
 	// if layer 2, save state
 	if (pull.layer() == Layer::OSI_LAYER_2)
-	  l2_state.reset(new L2State(tap, openvpn_app_path));
+	  l2_state.reset(new L2State(tap_, openvpn_app_path));
 
 	if (ring_buffer)
 	  register_rings(th(), ring_buffer);
 
-	if (!wintun && tap.index_defined())
-	  Util::flush_arp(tap.index, os);
+	if (tun_type_ == Type::TapWindows6 && tap_.index_defined())
+	  Util::flush_arp(tap_.index, os);
 
 	return th.release();
       }
@@ -343,7 +354,7 @@ namespace openvpn {
 	if (!l2_post)
 	  {
 	    // set TAP media status to CONNECTED
-	    if (!wintun)
+	    if (tun_type_ == TapWindows6)
 	      Util::tap_set_media_status(th, true);
 
 	    // try to delete any stale routes on interface left over from previous session
@@ -374,7 +385,7 @@ namespace openvpn {
 		const std::string netmask = IPv4::Addr::netmask_from_prefix_len(local4->prefix_length).to_string();
 		const IP::Addr localaddr = IP::Addr::from_string(local4->address);
 		const IP::Addr remoteaddr = IP::Addr::from_string(local4->gateway);
-		if (!wintun)
+		if (tun_type_ == TapWindows6)
 		  {
 		    if (local4->net30)
 		      Util::tap_configure_topology_net30(th, localaddr, remoteaddr);
@@ -636,7 +647,7 @@ namespace openvpn {
 			}
 		    }
 		}
-	      if (dsfx.empty())
+	      if (dsfx.empty() && !allow_local_dns_resolvers)
 		dsfx.emplace_back(".");
 
 	      // DNS server list
@@ -653,8 +664,8 @@ namespace openvpn {
 	  // the TAP adapter.
 	  if (use_wfp && !split_dns && !openvpn_app_path.empty() && (dns.ipv4() || dns.ipv6()))
 	    {
-	      create.add(new ActionWFP(openvpn_app_path, tap.index, true, wfp));
-	      destroy.add(new ActionWFP(openvpn_app_path, tap.index, false, wfp));
+	      create.add(new ActionWFP(openvpn_app_path, tap.index, true, allow_local_dns_resolvers ,wfp));
+	      destroy.add(new ActionWFP(openvpn_app_path, tap.index, false, allow_local_dns_resolvers, wfp));
 	    }
 	}
 
@@ -753,7 +764,7 @@ namespace openvpn {
 	    }
 
 	    // set TAP media status to CONNECTED
-	    if (!wintun)
+	    if (tun_type_ == TapWindows6)
 	      Util::tap_set_media_status(th, true);
 
 	    // ARP
@@ -944,7 +955,9 @@ namespace openvpn {
 
       AsioTimer delete_route_timer;
 
-      bool wintun = false;
+      const Type tun_type_;
+      Util::TapNameGuidPair tap_;
+      bool allow_local_dns_resolvers = false;
     };
   }
 }

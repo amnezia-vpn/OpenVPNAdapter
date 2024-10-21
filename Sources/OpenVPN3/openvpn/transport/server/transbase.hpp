@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -40,6 +40,9 @@
 #include <openvpn/server/peerstats.hpp>
 #include <openvpn/server/peeraddr.hpp>
 #include <openvpn/ssl/datalimit.hpp>
+
+// used by ipma_notify()
+struct ovpn_tun_head_ipma;
 
 namespace openvpn {
 
@@ -121,6 +124,9 @@ namespace openvpn {
 
       // client float notification
       virtual void float_notify(const PeerAddr::Ptr& addr) = 0;
+
+      // IP-mapped ACL (IPMA) notification
+      virtual void ipma_notify(const struct ovpn_tun_head_ipma& ipma) = 0;
 
       // Data limit notification -- trigger a renegotiation
       // when cdl_status == DataLimit::Red.

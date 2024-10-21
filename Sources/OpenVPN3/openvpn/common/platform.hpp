@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -34,7 +34,6 @@
 # endif // defined(__cplusplus_winrt)
 #elif defined(__APPLE__)
 # include "TargetConditionals.h"
-# define OPENVPN_PLATFORM_TYPE_APPLE
 # if TARGET_OS_IPHONE // includes iPad
 #  define OPENVPN_PLATFORM_IPHONE
 #  define OPENVPN_PLATFORM_IPHONE_DEVICE
@@ -49,6 +48,9 @@
 #elif defined(__linux__)
 # define OPENVPN_PLATFORM_LINUX
 #endif
+
+// #define OPENVPN_PLUGGABLE_TRANSPORTS 1
+// #define USE_OPENSSL 0
 
 #if !defined(_WIN32)
 #define OPENVPN_PLATFORM_TYPE_UNIX

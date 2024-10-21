@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -102,10 +102,10 @@ namespace openvpn {
 	h(value_, SIZE);
       }
 
-#ifdef HAVE_CITYHASH
+#ifdef USE_OPENVPN_HASH
       std::size_t hashval() const
       {
-	HashSizeT h;
+	Hash64 h;
 	hash(h);
 	return h.value();
       }
@@ -237,6 +237,6 @@ namespace openvpn {
   };
 }
 
-#ifdef HAVE_CITYHASH
+#ifdef USE_OPENVPN_HASH
 OPENVPN_HASH_METHOD(openvpn::TLSSessionTicketBase::Name, hashval);
 #endif

@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -25,6 +25,10 @@
 #define OPENVPN_OPENSSL_UTIL_ENGINE_H
 
 #include <string>
+
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#define OPENSSL_NO_ENGINE
+#endif
 
 #ifndef OPENSSL_NO_ENGINE
 #include <openssl/engine.h>

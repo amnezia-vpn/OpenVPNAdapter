@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -79,6 +79,7 @@ namespace openvpn {
 	sc.sc_family = AF_SYSTEM;
 	sc.ss_sysaddr = AF_SYS_CONTROL;
 	sc.sc_unit = unit + 1;
+	std::memset(sc.sc_reserved, 0, sizeof(sc.sc_reserved));
 
 	// If the connect is successful, a utunX device will be created, where X
 	// is our unit number - 1.

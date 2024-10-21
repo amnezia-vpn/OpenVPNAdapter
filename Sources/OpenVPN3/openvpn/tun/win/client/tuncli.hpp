@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -398,10 +398,12 @@ namespace openvpn {
 							   TunClientParent& parent,
 							   TransportClient* transcli)
     {
-      if (wintun)
+      if (tun_type == TunWin::Wintun)
 	return TunClient::Ptr(new WintunClient(io_context, this, parent));
-      else
+      else if (tun_type == TunWin::TapWindows6)
 	return TunClient::Ptr(new Client(io_context, this, parent));
+      else
+	throw tun_win_error("unsupported tun driver");
     }
 
   }

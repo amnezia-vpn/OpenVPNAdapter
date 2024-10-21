@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -207,7 +207,7 @@ namespace openvpn {
   {
   public:
     CryptoOvpnHMACContext(const CryptoAlgs::Type digest_type)
-      : digest(CryptoAlgs::legal_dc_digest(digest_type))
+      : digest(digest_type)
     {
     }
 

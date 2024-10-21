@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -55,7 +55,14 @@ namespace openvpn {
     auto fn = cmd.c_str();
     auto av = argv_wrap.c_argv();
     auto ev = env_wrap ? env_wrap->c_argv() : ::environ;
+
+#if defined(__APPLE__)
+    /* macOS vfork is deprecated and behaves identical to fork() */
+    const pid_t pid = ::fork();
+#else
     const pid_t pid = (redir || sigmask) ? ::fork() : ::vfork();
+#endif
+
     if (pid == pid_t(0)) /* child side */
       {
 	// Only Async-signal-safe functions as specified by

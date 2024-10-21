@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -55,7 +55,7 @@ using namespace openvpn;
 std::string log_version()
 {
   return platform_string("OpenVPN Management Interface", OMI_VERSION)
-    + " [" SSL_LIB_NAME "] built on " __DATE__ " " __TIME__;
+    + " [" SSL_LIB_NAME "] - server starting";
 }
 
 class OMI;
@@ -363,7 +363,8 @@ private:
 	  did_query_remote = false;
 	}
 
-      const ClientAPI::EvalConfig eval = Client::eval_config_static(*config);
+      ClientAPI::OpenVPNClientHelper clihelper;
+      const ClientAPI::EvalConfig eval = clihelper.eval_config(*config);
       if (eval.error)
 	OPENVPN_THROW_EXCEPTION("eval config error: " << eval.message);
 

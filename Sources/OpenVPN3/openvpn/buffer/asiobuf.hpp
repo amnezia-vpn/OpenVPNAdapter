@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -42,7 +42,7 @@ namespace openvpn {
     const openvpn_io::const_buffer* begin() const { return buf; }
     const openvpn_io::const_buffer* end() const { return buf + 2; }
 
-    const size_t size() const
+    size_t size() const
     {
       return openvpn_io::buffer_size(buf[0])
 	   + openvpn_io::buffer_size(buf[1]);

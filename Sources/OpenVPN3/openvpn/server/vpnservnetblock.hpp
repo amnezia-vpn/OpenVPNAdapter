@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -115,6 +115,8 @@ namespace openvpn {
       IP::Range range6_;
     };
 
+    VPNServerNetblock() {}
+
     VPNServerNetblock(const OptionList& opt,
 		      const std::string& opt_name,
 		      const bool ipv4_optional,
@@ -188,7 +190,7 @@ namespace openvpn {
       return snb4.contains(a) || snb6.contains(a);
     }
 
-    const size_t size() const { return thr.size(); }
+    size_t size() const { return thr.size(); }
 
     const PerThread& per_thread(const size_t index) const
     {

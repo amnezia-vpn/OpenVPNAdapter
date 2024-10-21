@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -64,7 +64,7 @@ namespace openvpn {
 
       ~CipherContextAEAD() { erase() ; }
 
-      void init(const CryptoAlgs::Type alg,
+      void init(SSLLib::Ctx libctx, const CryptoAlgs::Type alg,
 		const unsigned char *key,
 		const unsigned int keysize,
 		const int mode)
@@ -129,7 +129,7 @@ namespace openvpn {
 
       bool is_initialized() const { return initialized; }
 
-      static bool is_supported(const CryptoAlgs::Type alg)
+      static bool is_supported(void *libctx, const CryptoAlgs::Type alg)
       {
         unsigned int keysize;
        	return (cipher_type(alg, keysize) != MBEDTLS_CIPHER_NONE);

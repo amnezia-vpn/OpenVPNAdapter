@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -230,7 +230,7 @@ void runTest(comppair alg, bool verbose=false)
 		  << " blk=" << BLOCK_SIZE
 		  << " bytes=" << bytes
 		  << " comp-bytes=" << compress_bytes
-		  << " comp-ratio=" << (float) compress_bytes / bytes
+		  << " comp-ratio=" << (bytes ? (float) compress_bytes / bytes : 0.0)
 		  << std::endl;
 }
 

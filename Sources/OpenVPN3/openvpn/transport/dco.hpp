@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -36,6 +36,10 @@
 #include <openvpn/tun/client/tunbase.hpp>
 #include <openvpn/tun/client/tunprop.hpp>
 
+#if defined(OPENVPN_PLATFORM_WIN)
+#include <openvpn/tun/win/client/tunsetup.hpp>
+#endif
+
 namespace openvpn {
   struct DCO : public virtual RC<thread_unsafe_refcount>
   {
@@ -59,6 +63,18 @@ namespace openvpn {
     struct TunConfig
     {
       TunConfig() = default;
+
+#if defined(OPENVPN_PLATFORM_WIN)
+      TunWin::SetupFactory::Ptr setup_factory;
+
+      TunWin::SetupBase::Ptr new_setup_obj(openvpn_io::io_context& io_context, bool allow_local_dns_resolvers)
+      {
+	if (setup_factory)
+	  return setup_factory->new_setup_obj(io_context, TunWin::OvpnDco, allow_local_dns_resolvers);
+	else
+	  return new TunWin::Setup(io_context, TunWin::OvpnDco, allow_local_dns_resolvers);
+      }
+#endif
 
       TunProp::Config tun_prop;
       Stop* stop = nullptr;

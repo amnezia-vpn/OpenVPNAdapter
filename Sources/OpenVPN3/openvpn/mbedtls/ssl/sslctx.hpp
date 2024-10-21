@@ -4,7 +4,7 @@
 //               packet encryption, packet authentication, and
 //               packet compression.
 //
-//    Copyright (C) 2012-2020 OpenVPN Inc.
+//    Copyright (C) 2012-2022 OpenVPN Inc.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License Version 3
@@ -138,7 +138,7 @@ namespace openvpn {
        * X509 cert profiles.
        */
 
-#ifdef OPENVPN_USE_TLS_MD5
+#ifdef OPENVPN_ALLOW_INSECURE_CERTPROFILE
       // This profile includes the broken MD5 alrogithm.
       // We are going to ship support for this algorithm for a limited
       // amount of time to allow our users to switch to something else
@@ -205,7 +205,7 @@ namespace openvpn {
 		 ssl_debug_level(0),
 		 flags(0),
 		 ns_cert_type(NSCert::NONE),
-		 tls_version_min(TLSVersion::UNDEF),
+		 tls_version_min(TLSVersion::V1_2),
 		 tls_cert_profile(TLSCertProfile::UNDEF),
 		 local_cert_enabled(true) {}
 
@@ -240,6 +240,11 @@ namespace openvpn {
       {
 	// fixme -- this method should be implemented for client-side TLS session resumption tickets
 	throw MbedTLSException("set_client_session_tickets not implemented");
+      }
+
+      virtual void enable_legacy_algorithms(const bool v) {
+	// We ignore the request to enable legacy as we do not have a runtime
+	// configuration for this
       }
 
       virtual void set_sni_handler(SNI::HandlerBase* sni_handler)
@@ -593,7 +598,7 @@ namespace openvpn {
       {
 	switch (TLSCertProfile::default_if_undef(tls_cert_profile))
 	  {
-#ifdef OPENVPN_USE_TLS_MD5
+#ifdef OPENVPN_ALLOW_INSECURE_CERTPROFILE
 	  case TLSCertProfile::INSECURE:
 	    return &mbedtls_ctx_private::crt_profile_insecure;
 #endif
@@ -1126,18 +1131,24 @@ namespace openvpn {
     /////// start of main class implementation
 
     // create a new SSL instance
-    virtual SSLAPI::Ptr ssl()
+    virtual SSLAPI::Ptr ssl() override
     {
       return SSL::Ptr(new SSL(this, nullptr));
     }
 
+	// Get the library context. This currently does not exist for mbed TLS
+	SSLLib::Ctx libctx() override
+	{
+	  return nullptr;
+	}
+
     // like ssl() above but verify hostname against cert CommonName and/or SubjectAltName
-    virtual SSLAPI::Ptr ssl(const std::string* hostname, const std::string* cache_key)
+    SSLAPI::Ptr ssl(const std::string* hostname, const std::string* cache_key) override
     {
       return SSL::Ptr(new SSL(this, hostname ? hostname->c_str() : nullptr));
     }
 
-    virtual const Mode& mode() const
+    const Mode& mode() const override
     {
       return config->mode;
     }
