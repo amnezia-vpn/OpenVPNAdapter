@@ -1500,7 +1500,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = LZ4;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 			};
 			name = Debug;
 		};
@@ -1531,7 +1531,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = LZ4;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 			};
 			name = Release;
 		};
@@ -1540,6 +1540,8 @@
 			baseConfigurationReference = C9EABF7424111D6100D828D4 /* OpenVPNAdapter.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHSa = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "$(CODE_SIGN_IDENTITY_$(_DEVELOPMENT_TEAM_IS_EMPTY))";
 				CODE_SIGN_STYLE = Automatic;
@@ -1575,7 +1577,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TARGET_NAME = OpenVPNAdapter;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 				"VALID_ARCHS[arch=*]" = x86_64;
 				"VALID_ARCHS[sdk=iphoneos*]" = x86_64;
 			};
@@ -1586,6 +1588,8 @@
 			baseConfigurationReference = C9EABF7424111D6100D828D4 /* OpenVPNAdapter.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
+				ARCHSa = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "$(CODE_SIGN_IDENTITY_$(_DEVELOPMENT_TEAM_IS_EMPTY))";
 				CODE_SIGN_STYLE = Automatic;
@@ -1621,7 +1625,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TARGET_NAME = OpenVPNAdapter;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 				"VALID_ARCHS[arch=*]" = x86_64;
 				"VALID_ARCHS[sdk=iphoneos*]" = arm64;
 			};
@@ -1690,7 +1694,7 @@
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = OpenVPNClient;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 				a = "";
 			};
 			name = Debug;
@@ -1733,7 +1737,7 @@
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = OpenVPNClient;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 				"VALID_ARCHS[sdk=iphoneos*]" = x86_64;
 				a = "";
 			};
@@ -1769,7 +1773,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = mbedTLS;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 			};
 			name = Debug;
 		};
@@ -1803,7 +1807,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGET_NAME = mbedTLS;
-				VALID_ARCHS = x86_64;
+				VALID_ARCHS = "arm64 x86_64";
 			};
 			name = Release;
 		};

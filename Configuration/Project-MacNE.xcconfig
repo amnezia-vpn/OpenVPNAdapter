@@ -32,6 +32,4 @@ SDKROOT[arch=x86_64] = macosx
 
 VALID_ARCHS[sdk=macosx*] = x86_64
 ARCHS = $(ARCHS_STANDARD)
-//EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64PROJECT_TEMP_DIR = /Users/macbook/Documents/VPN/dev-branch/amnezia-client/client/3rd/OpenVPNAdapter/build/OpenVPNAdapter.build
-CONFIGURATION_BUILD_DIR = /Users/macbook/Documents/VPN/dev-branch/amnezia-client/client/3rd/OpenVPNAdapter/build/Release-macos
-BUILT_PRODUCTS_DIR = /Users/macbook/Documents/VPN/dev-branch/amnezia-client/client/3rd/OpenVPNAdapter/build/Release-macos
+//EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64
