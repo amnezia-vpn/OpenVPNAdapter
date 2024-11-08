@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -106,9 +106,9 @@
 		OBJ_300 /* OpenVPNTransportStats.h in Headers */ = {isa = PBXBuildFile; fileRef = OBJ_68 /* OpenVPNTransportStats.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		OBJ_301 /* OpenVPNSessionToken.h in Headers */ = {isa = PBXBuildFile; fileRef = OBJ_69 /* OpenVPNSessionToken.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		OBJ_302 /* OpenVPNCertificate.h in Headers */ = {isa = PBXBuildFile; fileRef = OBJ_70 /* OpenVPNCertificate.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		OBJ_304 /* OpenVPNClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::OpenVPNClient::Product" /* OpenVPNClient.framework */; };
-		OBJ_324 /* mbedTLS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */; platformFilter = ios; };
-		OBJ_325 /* LZ4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::LZ4::Product" /* LZ4.framework */; platformFilter = ios; };
+		OBJ_304 /* OpenVPNClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::OpenVPNClient::Product" /* OpenVPNClient.framework */; platformFilters = (ios, macos, ); };
+		OBJ_324 /* mbedTLS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */; };
+		OBJ_325 /* LZ4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OpenVPNAdapter::LZ4::Product" /* LZ4.framework */; };
 		OBJ_332 /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_85 /* aes.c */; };
 		OBJ_333 /* aesni.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_86 /* aesni.c */; };
 		OBJ_334 /* arc4.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_87 /* arc4.c */; };
@@ -1333,18 +1333,20 @@
 		};
 		OBJ_307 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilters = (
+				ios,
+				macos,
+			);
 			target = "OpenVPNAdapter::OpenVPNClient" /* OpenVPNClient */;
 			targetProxy = C9EABF2C2411076400D828D4 /* PBXContainerItemProxy */;
 		};
 		OBJ_326 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilter = ios;
 			target = "OpenVPNAdapter::mbedTLS" /* mbedTLS */;
 			targetProxy = C9EABF2A2411076400D828D4 /* PBXContainerItemProxy */;
 		};
 		OBJ_327 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilter = ios;
 			target = "OpenVPNAdapter::LZ4" /* LZ4 */;
 			targetProxy = C9EABF2B2411076400D828D4 /* PBXContainerItemProxy */;
 		};
@@ -1570,9 +1572,10 @@
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1618,9 +1621,10 @@
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1672,6 +1676,7 @@
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 				);
 				INFOPLIST_FILE = OpenVPNAdapter.xcodeproj/OpenVPNClient_Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/macosx",
@@ -1689,10 +1694,13 @@
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TARGET_NAME = OpenVPNClient;
 				VALID_ARCHS = "arm64 x86_64";
 				a = "";
@@ -1715,6 +1723,7 @@
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 				);
 				INFOPLIST_FILE = OpenVPNAdapter.xcodeproj/OpenVPNClient_Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/macosx",
@@ -1732,10 +1741,13 @@
 				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = NO;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				TARGET_NAME = OpenVPNClient;
 				VALID_ARCHS = "arm64 x86_64";
 				"VALID_ARCHS[sdk=iphoneos*]" = x86_64;

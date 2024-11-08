@@ -1,5 +1,4 @@
 SUPPORTED_PLATFORMS = macosx
-//TARGETED_DEVICE_FAMILY = 1,2
 
 HEADER_SEARCH_PATHS = $(inherited) \
     $(SRCROOT)/Sources/OpenVPNAdapter/include \
@@ -12,24 +11,10 @@ HEADER_SEARCH_PATHS = $(inherited) \
 CLANG_CXX_LANGUAGE_STANDARD = gnu++14
 CLANG_CXX_LIBRARY = libc++
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// iOS-specific settings
-//
-//IPHONEOS_DEPLOYMENT_TARGET = 10.0
-
-//SDKROOT[arch=arm64] = iphoneos
-//VALID_ARCHS[sdk=iphoneos*] = arm64
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// macOS-specific settings
-//
-MACOSX_DEPLOYMENT_TARGET = 10.15
+MACOSX_DEPLOYMENT_TARGET = 12.0
 
 SDKROOT[arch=x86_64] = macosx
-//SDKROOT[arch=arm64] = macosx
+SDKROOT[arch=arm64] = macosx
 
-VALID_ARCHS[sdk=macosx*] = x86_64
+VALID_ARCHS[sdk=macosx*] = x86_64 arm64
 ARCHS = $(ARCHS_STANDARD)
-//EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64
