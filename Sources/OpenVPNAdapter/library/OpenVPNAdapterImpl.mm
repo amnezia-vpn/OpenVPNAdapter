@@ -51,21 +51,27 @@
 #pragma mark - OpenVPNClient Lifecycle
 
 + (nullable OpenVPNConfigurationEvaluation *)evaluateConfiguration:(OpenVPNConfiguration *)configuration error:(NSError **)error {
-    ClientAPI::EvalConfig eval = OpenVPNClient::eval_config_static(configuration.config);
-    
-    if (eval.error) {
-        if (error) {
-            NSString *message = [NSString stringWithUTF8String:eval.message.c_str()];
-            *error = [NSError ovpn_errorObjectForAdapterError:OpenVPNAdapterErrorConfigurationFailure
-                                                  description:@"Failed to evaluate OpenVPN configuration."
-                                                      message:message
-                                                        fatal:YES];
-        }
-        
-        return nil;
-    }
-    
-    return [[OpenVPNConfigurationEvaluation alloc] initWithEvalConfig:eval];
+//    ClientAPI::EvalConfig eval = self.vpnClient->apply_config(configuration.config);
+//
+//    if (eval.error) {
+//        if (error) {
+//            NSString *message = [NSString stringWithUTF8String:eval.message.c_str()];
+//            *error = [NSError ovpn_errorObjectForAdapterError:OpenVPNAdapterErrorConfigurationFailure
+//                                                  description:@"Failed to evaluate OpenVPN configuration."
+//                                                      message:message
+//                                                        fatal:YES];
+//        }
+//
+//        return nil;
+//    }
+//
+//    return [[OpenVPNConfigurationEvaluation alloc] initWithEvalConfig:eval];
+//    NSString *message = [NSString stringWithUTF8String:eval.message.c_str()];
+    *error = [NSError ovpn_errorObjectForAdapterError:OpenVPNAdapterErrorConfigurationFailure
+                                          description:@"Function not support"
+                                              message:@"Function not support"
+                                                fatal:YES];
+    return nil;
 }
 
 - (OpenVPNConfigurationEvaluation *)applyConfiguration:(OpenVPNConfiguration *)configuration error:(NSError * __autoreleasing *)error {
@@ -152,11 +158,11 @@
 #pragma mark - OpenVPNClient Information
 
 + (NSString *)copyright {
-    return [NSString stringWithUTF8String:OpenVPNClient::copyright().c_str()];
+    return @"amnezia";
 }
 
 + (NSString *)platform {
-    return [NSString stringWithUTF8String:OpenVPNClient::platform().c_str()];
+    return @"iOS";
 }
 
 - (OpenVPNConnectionInfo *)connectionInformation {

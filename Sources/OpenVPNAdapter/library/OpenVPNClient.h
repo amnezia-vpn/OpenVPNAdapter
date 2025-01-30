@@ -64,7 +64,7 @@ public:
     ~OpenVPNClient();
     
     ClientAPI::EvalConfig apply_config(const ClientAPI::Config& config);
-    
+    ClientAPI::EvalConfig eval_config_static(const ClientAPI::Config& config);
     bool tun_builder_new() override;
     
     bool tun_builder_set_remote_address(const std::string& address, bool ipv6) override;
@@ -81,7 +81,7 @@ public:
     bool tun_builder_set_proxy_auto_config_url(const std::string& urlString) override;
     bool tun_builder_set_proxy_http(const std::string& host, int port) override;
     bool tun_builder_set_proxy_https(const std::string& host, int port) override;
-    bool tun_builder_set_block_ipv6(bool block_ipv6) override;
+    bool tun_builder_set_block_ipv6(bool block_ipv6);
     
     int tun_builder_establish() override;
     bool tun_builder_persist() override;

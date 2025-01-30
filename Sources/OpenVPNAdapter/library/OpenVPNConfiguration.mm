@@ -67,7 +67,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     NSString *currentValue = [value length] == 0 ? OpenVPNTransportProtocolDefaultValue : value;
     
     NSNumber *transportProtocol = options[currentValue];
-    NSAssert(transportProtocol != nil, @"Incorrect protocol value: %@", currentValue);
+    NSAssert(transportProtocol != nil, @"amnezia -> Incorrect protocol value: %@", currentValue);
     
     return (OpenVPNTransportProtocol)[transportProtocol integerValue];
 }
@@ -81,7 +81,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     };
     
     NSString *value = options[@(protocol)];
-    NSAssert(value != nil, @"Incorrect protocol value: %li", (long)protocol);
+    NSAssert(value != nil, @"amnezia -> Incorrect protocol value: %li", (long)protocol);
     
     return value;
 }
@@ -96,7 +96,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     NSString *currentValue = [value length] == 0 ? OpenVPNIPv6PreferenceDefaultValue : value;
     
     NSNumber *ipv6 = options[currentValue];
-    NSAssert(ipv6 != nil, @"Incorrect ipv6 value: %@", currentValue);
+    NSAssert(ipv6 != nil, @"amnezia -> Incorrect ipv6 value: %@", currentValue);
     
     return (OpenVPNIPv6Preference)[ipv6 integerValue];
 }
@@ -109,7 +109,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     };
     
     NSString *value = options[@(preference)];
-    NSAssert(value != nil, @"Incorrect ipv6 value: %li", (long)preference);
+    NSAssert(value != nil, @"amnezia -> Incorrect ipv6 value: %li", (long)preference);
     
     return value;
 }
@@ -125,7 +125,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     NSString *currentValue = [value length] == 0 ? OpenVPNCompressionModeDefaultValue : value;
     
     NSNumber *compressionMode = options[currentValue];
-    NSAssert(compressionMode != nil, @"Incorrect compressionMode value: %@", currentValue);
+    NSAssert(compressionMode != nil, @"amnezia -> Incorrect compressionMode value: %@", currentValue);
     
     return (OpenVPNCompressionMode)[compressionMode integerValue];
 }
@@ -139,7 +139,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     };
     
     NSString *value = options[@(compressionMode)];
-    NSAssert(value != nil, @"Incorrect compressionMode value: %li", (long)compressionMode);
+    NSAssert(value != nil, @"amnezia -> Incorrect compressionMode value: %li", (long)compressionMode);
     
     return value;
 }
@@ -156,7 +156,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     NSString *currentValue = [value length] == 0 ? OpenVPNMinTLSVersionDefaultValue : value;
     
     NSNumber *minTLSVersion = options[currentValue];
-    NSAssert(minTLSVersion != nil, @"Incorrect minTLS value: %@", currentValue);
+    NSAssert(minTLSVersion != nil, @"amnezia -> Incorrect minTLS value: %@", currentValue);
     
     return (OpenVPNMinTLSVersion)[minTLSVersion integerValue];
 }
@@ -171,7 +171,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     };
     
     NSString *value = options[@(minTLS)];
-    NSAssert(value != nil, @"Incorrect minTLS value: %li", (long)minTLS);
+    NSAssert(value != nil, @"amnezia -> Incorrect minTLS value: %li", (long)minTLS);
     
     return value;
 }
@@ -189,7 +189,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     NSString *currentValue = [value length] == 0 ? OpenVPNTLSCertProfileDefaultValue : value;
     
     NSNumber *tlsCertProfile = options[currentValue];
-    NSAssert(tlsCertProfile != nil, @"Incorrect tlsCertProfile value: %@", currentValue);
+    NSAssert(tlsCertProfile != nil, @"amnezia -> Incorrect tlsCertProfile value: %@", currentValue);
     
     return (OpenVPNTLSCertProfile)[tlsCertProfile integerValue];
 }
@@ -205,7 +205,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     };
     
     NSString *value = options[@(tlsCertProfile)];
-    NSAssert(value != nil, @"Incorrect tlsCertProfile value: %li", (long)tlsCertProfile);
+    NSAssert(value != nil, @"amnezia -> Incorrect tlsCertProfile value: %li", (long)tlsCertProfile);
     
     return value;
 }
@@ -213,6 +213,10 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
 @end
 
 @implementation OpenVPNConfiguration
+
+- (void)setPTCloak {
+    _config.usePluggableTransports = TRUE;
+}
 
 - (NSData *)fileContent {
     return !_config.content.empty() ? [NSData dataWithBytes:_config.content.data() length:_config.content.size()] : nil;
@@ -315,13 +319,14 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
 }
 
 - (OpenVPNIPv6Preference)ipv6 {
-    NSString *currentValue = [NSString stringWithUTF8String:_config.ipv6.c_str()];
+//    NSString *currentValue = [NSString stringWithUTF8String:_config.ipv6.c_str()];
+    NSString *currentValue = @"";
     return [OpenVPNConfiguration getIPv6PreferenceFromValue:currentValue];
 }
 
 - (void)setIpv6:(OpenVPNIPv6Preference)ipv6 {
     NSString *value = [OpenVPNConfiguration getValueFromIPv6Preference:ipv6];
-    _config.ipv6 = std::string([value UTF8String]);
+//    _config.ipv6 = std::string([value UTF8String]);
 }
 
 - (NSInteger)connectionTimeout {
@@ -412,14 +417,6 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
 
 - (void)setKeyDirection:(NSInteger)keyDirection {
     _config.defaultKeyDirection = keyDirection;
-}
-
-- (BOOL)forceCiphersuitesAESCBC {
-    return _config.forceAesCbcCiphersuites;
-}
-
-- (void)setForceCiphersuitesAESCBC:(BOOL)forceCiphersuitesAESCBC {
-    _config.forceAesCbcCiphersuites = forceCiphersuitesAESCBC;
 }
 
 - (OpenVPNMinTLSVersion)minTLSVersion {
@@ -545,7 +542,6 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     configuration.compressionMode = self.compressionMode;
     configuration.privateKeyPassword = [self.privateKeyPassword copyWithZone:zone];
     configuration.keyDirection = self.keyDirection;
-    configuration.forceCiphersuitesAESCBC = self.forceCiphersuitesAESCBC;
     configuration.minTLSVersion = self.minTLSVersion;
     configuration.tlsCertProfile = self.tlsCertProfile;
     configuration.peerInfo = [self.peerInfo copyWithZone:zone];
@@ -575,7 +571,6 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
     [aCoder encodeInteger:self.compressionMode forKey:NSStringFromSelector(@selector(compressionMode))];
     [aCoder encodeObject:self.privateKeyPassword forKey:NSStringFromSelector(@selector(privateKeyPassword))];
     [aCoder encodeInteger:self.keyDirection forKey:NSStringFromSelector(@selector(keyDirection))];
-    [aCoder encodeBool:self.forceCiphersuitesAESCBC forKey:NSStringFromSelector(@selector(forceCiphersuitesAESCBC))];
     [aCoder encodeInteger:self.minTLSVersion forKey:NSStringFromSelector(@selector(minTLSVersion))];
     [aCoder encodeInteger:self.tlsCertProfile forKey:NSStringFromSelector(@selector(tlsCertProfile))];
     [aCoder encodeObject:self.peerInfo forKey:NSStringFromSelector(@selector(peerInfo))];
@@ -605,7 +600,6 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
         self.compressionMode = (OpenVPNCompressionMode)[aDecoder decodeIntegerForKey:NSStringFromSelector(@selector(compressionMode))];
         self.privateKeyPassword = [aDecoder decodeObjectOfClass:[NSString class] forKey:NSStringFromSelector(@selector(privateKeyPassword))];
         self.keyDirection = [aDecoder decodeIntegerForKey:NSStringFromSelector(@selector(keyDirection))];
-        self.forceCiphersuitesAESCBC = [aDecoder decodeBoolForKey:NSStringFromSelector(@selector(forceCiphersuitesAESCBC))];
         self.minTLSVersion = (OpenVPNMinTLSVersion)[aDecoder decodeIntegerForKey:NSStringFromSelector(@selector(minTLSVersion))];
         self.tlsCertProfile = (OpenVPNTLSCertProfile)[aDecoder decodeIntegerForKey:NSStringFromSelector(@selector(tlsCertProfile))];
         self.peerInfo = [aDecoder decodeObjectOfClass:[NSDictionary class] forKey:NSStringFromSelector(@selector(peerInfo))];

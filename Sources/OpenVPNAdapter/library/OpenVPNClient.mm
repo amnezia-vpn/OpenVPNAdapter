@@ -26,9 +26,16 @@ OpenVPNClient::~OpenVPNClient() {
 
 ClientAPI::EvalConfig OpenVPNClient::apply_config(const ClientAPI::Config& config) {
     if (this->config != nullptr) { delete this->config; }
+//    this->config->usePluggableTransports = TRUE;
     this->config = new ClientAPI::Config(config);
     
     return eval_config(config);
+}
+
+ClientAPI::EvalConfig OpenVPNClient::eval_config_static(const ClientAPI::Config& config){
+    if (this->config != nullptr) { delete this->config; }
+    this->config = new ClientAPI::Config(config);
+    return eval_config_static(config);
 }
 
 bool OpenVPNClient::tun_builder_new() {
