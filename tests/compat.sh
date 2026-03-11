@@ -2,9 +2,20 @@
 
 # compat.sh
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
 #
-# Copyright (c) 2012-2016, ARM Limited, All Rights Reserved
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # Purpose
 #
@@ -19,6 +30,11 @@ set -u
 # where it may output seemingly unlimited length error logs.
 ulimit -f 20971520
 
+ORIGINAL_PWD=$PWD
+if ! cd "$(dirname "$0")"; then
+    exit 125
+fi
+
 # initialise counters
 TESTS=0
 FAILED=0
@@ -28,9 +44,20 @@ SRVMEM=0
 # default commands, can be overridden by the environment
 : ${M_SRV:=../programs/ssl/ssl_server2}
 : ${M_CLI:=../programs/ssl/ssl_client2}
-: ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system
+: ${OPENSSL:=openssl}
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
+
+# The OPENSSL variable used to be OPENSSL_CMD for historical reasons.
+# To help the migration, error out if the old variable is set,
+# but only if it has a different value than the new one.
+if [ "${OPENSSL_CMD+set}" = set ]; then
+    # the variable is set, we can now check its value
+    if [ "$OPENSSL_CMD" != "$OPENSSL" ]; then
+        echo "Please use OPENSSL instead of OPENSSL_CMD." >&2
+        exit 125
+    fi
+fi
 
 # do we have a recent enough GnuTLS?
 if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null 2>&1; then
@@ -46,23 +73,41 @@ if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null 2>&1; then
             PEER_GNUTLS=""
         else
             PEER_GNUTLS=" GnuTLS"
+            if [ $MINOR -lt 4 ]; then
+                GNUTLS_MINOR_LT_FOUR='x'
+            fi
         fi
     fi
 else
     PEER_GNUTLS=""
 fi
 
+guess_config_name() {
+    if git diff --quiet ../include/mbedtls/config.h 2>/dev/null; then
+        echo "default"
+    else
+        echo "unknown"
+    fi
+}
+: ${MBEDTLS_TEST_OUTCOME_FILE=}
+: ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
+: ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+
 # default values for options
-MODES="tls1 tls1_1 tls1_2 dtls1 dtls1_2"
+# /!\ keep this synchronised with:
+# - basic-build-test.sh
+# - all.sh (multiple components)
+MODES="tls1 tls1_1 tls12 dtls1 dtls12" # ssl3 not in default config
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
 # exclude:
-# - NULL: excluded from our default config
+# - NULL: excluded from our default config + requires OpenSSL legacy
 # - RC4, single-DES: requires legacy OpenSSL/GnuTLS versions
-#   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
 # - 3DES: not in default config
-EXCLUDE='NULL\|DES\|RC4\|ARCFOUR'
+# - ARIA: not in default config.h + requires OpenSSL >= 1.1.1
+# - ChachaPoly: requires OpenSSL >= 1.1.0
+EXCLUDE='NULL\|DES\|RC4\|ARCFOUR\|ARIA\|CHACHA20-POLY1305'
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
@@ -74,15 +119,17 @@ PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 print_usage() {
     echo "Usage: $0"
     printf "  -h|--help\tPrint this help.\n"
-    printf "  -f|--filter\tOnly matching ciphersuites are tested (Default: '$FILTER')\n"
-    printf "  -e|--exclude\tMatching ciphersuites are excluded (Default: '$EXCLUDE')\n"
-    printf "  -m|--modes\tWhich modes to perform (Default: '$MODES')\n"
-    printf "  -t|--types\tWhich key exchange type to perform (Default: '$TYPES')\n"
-    printf "  -V|--verify\tWhich verification modes to perform (Default: '$VERIFIES')\n"
-    printf "  -p|--peers\tWhich peers to use (Default: '$PEERS')\n"
+    printf "  -f|--filter\tOnly matching ciphersuites are tested (Default: '%s')\n" "$FILTER"
+    printf "  -e|--exclude\tMatching ciphersuites are excluded (Default: '%s')\n" "$EXCLUDE"
+    printf "  -m|--modes\tWhich modes to perform (Default: '%s')\n" "$MODES"
+    printf "  -t|--types\tWhich key exchange type to perform (Default: '%s')\n" "$TYPES"
+    printf "  -V|--verify\tWhich verification modes to perform (Default: '%s')\n" "$VERIFIES"
+    printf "  -p|--peers\tWhich peers to use (Default: '%s')\n" "$PEERS"
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
+    printf "     --outcome-file\tFile where test outcomes are written\n"
+    printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
 }
 
 get_options() {
@@ -112,6 +159,9 @@ get_options() {
             -M|--memcheck)
                 MEMCHECK=1
                 ;;
+            --outcome-file)
+                shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
             -h|--help)
                 print_usage
                 exit 0
@@ -140,7 +190,7 @@ log() {
 # is_dtls <mode>
 is_dtls()
 {
-    test "$1" = "dtls1" -o "$1" = "dtls1_2"
+    test "$1" = "dtls1" -o "$1" = "dtls12"
 }
 
 # minor_ver <mode>
@@ -156,7 +206,7 @@ minor_ver()
         tls1_1|dtls1)
             echo 2
             ;;
-        tls1_2|dtls1_2)
+        tls12|dtls12)
             echo 3
             ;;
         *)
@@ -186,17 +236,6 @@ filter()
   echo "$NEW_LIST" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/^ //' -e 's/ $//'
 }
 
-# OpenSSL 1.0.1h with -Verify wants a ClientCertificate message even for
-# PSK ciphersuites with DTLS, which is incorrect, so disable them for now
-check_openssl_server_bug()
-{
-    if test "X$VERIFY" = "XYES" && is_dtls "$MODE" && \
-        echo "$1" | grep "^TLS-PSK" >/dev/null;
-    then
-        SKIP_NEXT="YES"
-    fi
-}
-
 filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
@@ -211,18 +250,9 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check what OpenSSL
-    # supports from the s_server help. (The s_client help isn't
-    # accurate as of 1.0.2g: it supports DTLS 1.2 but doesn't list it.
-    # But the s_server help seems to be accurate.)
-    if ! $OPENSSL_CMD s_server -help 2>&1 | grep -q "^ *-$MODE "; then
-        M_CIPHERS=""
-        O_CIPHERS=""
-    fi
-
     # For GnuTLS client -> mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
-    if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
+    if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""
     fi
 }
@@ -234,6 +264,9 @@ reset_ciphersuites()
     G_CIPHERS=""
 }
 
+# Ciphersuites that can be used with all peers.
+# Since we currently have three possible peers, each ciphersuite should appear
+# three times: in each peer's list (with the name that this peer uses).
 add_common_ciphersuites()
 {
     case $TYPE in
@@ -430,6 +463,16 @@ add_common_ciphersuites()
     esac
 }
 
+# Ciphersuites usable only with Mbed TLS and OpenSSL
+# Each ciphersuite should appear two times, once with its OpenSSL name, once
+# with its Mbed TLS name.
+#
+# NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
+# so RSA-PSK ciphersuites need to go in other sections, see
+# https://github.com/Mbed-TLS/mbedtls/issues/1419
+#
+# ChachaPoly suites are here rather than in "common", as they were added in
+# GnuTLS in 3.5.0 and the CI only has 3.4.x so far.
 add_openssl_ciphersuites()
 {
     case $TYPE in
@@ -459,12 +502,18 @@ add_openssl_ciphersuites()
                     TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
                     TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
                     TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-256-GCM-SHA384        \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-128-GCM-SHA256        \
+                    TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256   \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDH-ECDSA-AES128-SHA256        \
                     ECDH-ECDSA-AES256-SHA384        \
                     ECDH-ECDSA-AES128-GCM-SHA256    \
                     ECDH-ECDSA-AES256-GCM-SHA384    \
+                    ECDHE-ECDSA-ARIA256-GCM-SHA384  \
+                    ECDHE-ECDSA-ARIA128-GCM-SHA256  \
+                    ECDHE-ECDSA-CHACHA20-POLY1305   \
                     "
             fi
             ;;
@@ -478,13 +527,60 @@ add_openssl_ciphersuites()
                 DES-CBC-SHA                     \
                 EDH-RSA-DES-CBC-SHA             \
                 "
+            if [ `minor_ver "$MODE"` -ge 3 ]
+            then
+                M_CIPHERS="$M_CIPHERS                               \
+                    TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
+                    TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
+                    TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
+                    TLS-DHE-RSA-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-RSA-WITH-ARIA-128-GCM-SHA256                \
+                    TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256       \
+                    TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256     \
+                    "
+                O_CIPHERS="$O_CIPHERS               \
+                    ECDHE-ARIA256-GCM-SHA384        \
+                    DHE-RSA-ARIA256-GCM-SHA384      \
+                    ARIA256-GCM-SHA384              \
+                    ECDHE-ARIA128-GCM-SHA256        \
+                    DHE-RSA-ARIA128-GCM-SHA256      \
+                    ARIA128-GCM-SHA256              \
+                    DHE-RSA-CHACHA20-POLY1305       \
+                    ECDHE-RSA-CHACHA20-POLY1305     \
+                    "
+            fi
             ;;
 
         "PSK")
+            if [ `minor_ver "$MODE"` -ge 3 ]
+            then
+                M_CIPHERS="$M_CIPHERS                               \
+                    TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-DHE-PSK-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
+                    TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
+                    TLS-PSK-WITH-CHACHA20-POLY1305-SHA256           \
+                    TLS-ECDHE-PSK-WITH-CHACHA20-POLY1305-SHA256     \
+                    TLS-DHE-PSK-WITH-CHACHA20-POLY1305-SHA256       \
+                    "
+                O_CIPHERS="$O_CIPHERS               \
+                    DHE-PSK-ARIA256-GCM-SHA384      \
+                    DHE-PSK-ARIA128-GCM-SHA256      \
+                    PSK-ARIA256-GCM-SHA384          \
+                    PSK-ARIA128-GCM-SHA256          \
+                    DHE-PSK-CHACHA20-POLY1305       \
+                    ECDHE-PSK-CHACHA20-POLY1305     \
+                    PSK-CHACHA20-POLY1305           \
+                    "
+            fi
             ;;
     esac
 }
 
+# Ciphersuites usable only with Mbed TLS and GnuTLS
+# Each ciphersuite should appear two times, once with its GnuTLS name, once
+# with its Mbed TLS name.
 add_gnutls_ciphersuites()
 {
     case $TYPE in
@@ -497,12 +593,20 @@ add_gnutls_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384    \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM                \
+                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM                \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8              \
+                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
                    "
                 G_CIPHERS="$G_CIPHERS                               \
                     +ECDHE-ECDSA:+CAMELLIA-128-CBC:+SHA256          \
                     +ECDHE-ECDSA:+CAMELLIA-256-CBC:+SHA384          \
                     +ECDHE-ECDSA:+CAMELLIA-128-GCM:+AEAD            \
                     +ECDHE-ECDSA:+CAMELLIA-256-GCM:+AEAD            \
+                    +ECDHE-ECDSA:+AES-128-CCM:+AEAD                 \
+                    +ECDHE-ECDSA:+AES-256-CCM:+AEAD                 \
+                    +ECDHE-ECDSA:+AES-128-CCM-8:+AEAD               \
+                    +ECDHE-ECDSA:+AES-256-CCM-8:+AEAD               \
                    "
             fi
             ;;
@@ -532,6 +636,14 @@ add_gnutls_ciphersuites()
                     TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
                     TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                    TLS-RSA-WITH-AES-128-CCM                    \
+                    TLS-RSA-WITH-AES-256-CCM                    \
+                    TLS-DHE-RSA-WITH-AES-128-CCM                \
+                    TLS-DHE-RSA-WITH-AES-256-CCM                \
+                    TLS-RSA-WITH-AES-128-CCM-8                  \
+                    TLS-RSA-WITH-AES-256-CCM-8                  \
+                    TLS-DHE-RSA-WITH-AES-128-CCM-8              \
+                    TLS-DHE-RSA-WITH-AES-256-CCM-8              \
                     "
                 G_CIPHERS="$G_CIPHERS                           \
                     +ECDHE-RSA:+CAMELLIA-128-CBC:+SHA256        \
@@ -546,6 +658,14 @@ add_gnutls_ciphersuites()
                     +DHE-RSA:+CAMELLIA-256-GCM:+AEAD            \
                     +RSA:+CAMELLIA-128-GCM:+AEAD                \
                     +RSA:+CAMELLIA-256-GCM:+AEAD                \
+                    +RSA:+AES-128-CCM:+AEAD                     \
+                    +RSA:+AES-256-CCM:+AEAD                     \
+                    +RSA:+AES-128-CCM-8:+AEAD                   \
+                    +RSA:+AES-256-CCM-8:+AEAD                   \
+                    +DHE-RSA:+AES-128-CCM:+AEAD                 \
+                    +DHE-RSA:+AES-256-CCM:+AEAD                 \
+                    +DHE-RSA:+AES-128-CCM-8:+AEAD               \
+                    +DHE-RSA:+AES-256-CCM-8:+AEAD               \
                     "
             fi
             ;;
@@ -617,6 +737,14 @@ add_gnutls_ciphersuites()
                     TLS-PSK-WITH-AES-256-GCM-SHA384             \
                     TLS-DHE-PSK-WITH-AES-128-GCM-SHA256         \
                     TLS-DHE-PSK-WITH-AES-256-GCM-SHA384         \
+                    TLS-PSK-WITH-AES-128-CCM                    \
+                    TLS-PSK-WITH-AES-256-CCM                    \
+                    TLS-DHE-PSK-WITH-AES-128-CCM                \
+                    TLS-DHE-PSK-WITH-AES-256-CCM                \
+                    TLS-PSK-WITH-AES-128-CCM-8                  \
+                    TLS-PSK-WITH-AES-256-CCM-8                  \
+                    TLS-DHE-PSK-WITH-AES-128-CCM-8              \
+                    TLS-DHE-PSK-WITH-AES-256-CCM-8              \
                     TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256    \
                     TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256        \
@@ -647,6 +775,14 @@ add_gnutls_ciphersuites()
                     +PSK:+AES-256-GCM:+AEAD                     \
                     +DHE-PSK:+AES-128-GCM:+AEAD                 \
                     +DHE-PSK:+AES-256-GCM:+AEAD                 \
+                    +PSK:+AES-128-CCM:+AEAD                     \
+                    +PSK:+AES-256-CCM:+AEAD                     \
+                    +DHE-PSK:+AES-128-CCM:+AEAD                 \
+                    +DHE-PSK:+AES-256-CCM:+AEAD                 \
+                    +PSK:+AES-128-CCM-8:+AEAD                   \
+                    +PSK:+AES-256-CCM-8:+AEAD                   \
+                    +DHE-PSK:+AES-128-CCM-8:+AEAD               \
+                    +DHE-PSK:+AES-256-CCM-8:+AEAD               \
                     +RSA-PSK:+CAMELLIA-128-GCM:+AEAD            \
                     +RSA-PSK:+CAMELLIA-256-GCM:+AEAD            \
                     +PSK:+CAMELLIA-128-GCM:+AEAD                \
@@ -669,6 +805,9 @@ add_gnutls_ciphersuites()
     esac
 }
 
+# Ciphersuites usable only with Mbed TLS (not currently supported by another
+# peer usable in this script). This provide only very rudimentaty testing, as
+# this is not interop testing, but it's better than nothing.
 add_mbedtls_ciphersuites()
 {
     case $TYPE in
@@ -686,26 +825,26 @@ add_mbedtls_ciphersuites()
                 M_CIPHERS="$M_CIPHERS                               \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
-                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM                \
-                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM                \
-                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8              \
-                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-128-CBC-SHA256        \
+                    TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384         \
+                    TLS-ECDH-ECDSA-WITH-ARIA-128-GCM-SHA256         \
+                    TLS-ECDH-ECDSA-WITH-ARIA-256-CBC-SHA384         \
+                    TLS-ECDH-ECDSA-WITH-ARIA-128-CBC-SHA256         \
                     "
             fi
             ;;
 
         "RSA")
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
-                    TLS-RSA-WITH-AES-128-CCM                        \
-                    TLS-RSA-WITH-AES-256-CCM                        \
-                    TLS-DHE-RSA-WITH-AES-128-CCM                    \
-                    TLS-DHE-RSA-WITH-AES-256-CCM                    \
-                    TLS-RSA-WITH-AES-128-CCM-8                      \
-                    TLS-RSA-WITH-AES-256-CCM-8                      \
-                    TLS-DHE-RSA-WITH-AES-128-CCM-8                  \
-                    TLS-DHE-RSA-WITH-AES-256-CCM-8                  \
+                    TLS-ECDHE-RSA-WITH-ARIA-256-CBC-SHA384          \
+                    TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384            \
+                    TLS-ECDHE-RSA-WITH-ARIA-128-CBC-SHA256          \
+                    TLS-DHE-RSA-WITH-ARIA-128-CBC-SHA256            \
+                    TLS-RSA-WITH-ARIA-256-CBC-SHA384                \
+                    TLS-RSA-WITH-ARIA-128-CBC-SHA256                \
                     "
             fi
             ;;
@@ -723,44 +862,64 @@ add_mbedtls_ciphersuites()
                     TLS-RSA-PSK-WITH-NULL-SHA            \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
-                    TLS-PSK-WITH-AES-128-CCM                        \
-                    TLS-PSK-WITH-AES-256-CCM                        \
-                    TLS-DHE-PSK-WITH-AES-128-CCM                    \
-                    TLS-DHE-PSK-WITH-AES-256-CCM                    \
-                    TLS-PSK-WITH-AES-128-CCM-8                      \
-                    TLS-PSK-WITH-AES-256-CCM-8                      \
-                    TLS-DHE-PSK-WITH-AES-128-CCM-8                  \
-                    TLS-DHE-PSK-WITH-AES-256-CCM-8                  \
+                    TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384            \
+                    TLS-RSA-PSK-WITH-ARIA-128-CBC-SHA256            \
+                    TLS-PSK-WITH-ARIA-256-CBC-SHA384                \
+                    TLS-PSK-WITH-ARIA-128-CBC-SHA256                \
+                    TLS-RSA-PSK-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-RSA-PSK-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-ECDHE-PSK-WITH-ARIA-256-CBC-SHA384          \
+                    TLS-ECDHE-PSK-WITH-ARIA-128-CBC-SHA256          \
+                    TLS-DHE-PSK-WITH-ARIA-256-CBC-SHA384            \
+                    TLS-DHE-PSK-WITH-ARIA-128-CBC-SHA256            \
+                    TLS-RSA-PSK-WITH-CHACHA20-POLY1305-SHA256       \
                     "
             fi
             ;;
     esac
 }
 
+# o_check_ciphersuite CIPHER_SUITE_NAME
+o_check_ciphersuite()
+{
+    if [ "${O_SUPPORT_ECDH}" = "NO" ]; then
+        case "$1" in
+            *ECDH-*) SKIP_NEXT="YES"
+        esac
+    fi
+}
+
 setup_arguments()
 {
+    O_MODE=""
     G_MODE=""
     case "$MODE" in
         "ssl3")
+            O_MODE="ssl3"
             G_PRIO_MODE="+VERS-SSL3.0"
             ;;
         "tls1")
+            O_MODE="tls1"
             G_PRIO_MODE="+VERS-TLS1.0"
             ;;
         "tls1_1")
+            O_MODE="tls1_1"
             G_PRIO_MODE="+VERS-TLS1.1"
             ;;
-        "tls1_2")
+        "tls12")
+            O_MODE="tls1_2"
             G_PRIO_MODE="+VERS-TLS1.2"
             ;;
         "dtls1")
+            O_MODE="dtls1"
             G_PRIO_MODE="+VERS-DTLS1.0"
             G_MODE="-u"
             ;;
-        "dtls1_2")
+        "dtls12")
+            O_MODE="dtls1_2"
             G_PRIO_MODE="+VERS-DTLS1.2"
             G_MODE="-u"
             ;;
@@ -769,10 +928,30 @@ setup_arguments()
             exit 1;
     esac
 
+    # GnuTLS < 3.4 will choke if we try to allow CCM-8
+    if [ -z "${GNUTLS_MINOR_LT_FOUR-}" ]; then
+        G_PRIO_CCM="+AES-256-CCM-8:+AES-128-CCM-8:"
+    else
+        G_PRIO_CCM=""
+    fi
+
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE -dhparam data_files/dhparams.pem"
+    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
-    G_SERVER_PRIO="NORMAL:+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+
+    # The default prime for `openssl s_server` depends on the version:
+    # * OpenSSL <= 1.0.2a: 512-bit
+    # * OpenSSL 1.0.2b to 1.1.1b: 1024-bit
+    # * OpenSSL >= 1.1.1c: 2048-bit
+    # Mbed TLS wants >=1024, so force that for older versions. Don't force
+    # it for newer versions, which reject a 1024-bit prime. Indifferently
+    # force it or not for intermediate versions.
+    case $($OPENSSL version) in
+        "OpenSSL 1.0"*)
+            O_SERVER_ARGS="$O_SERVER_ARGS -dhparam data_files/dhparams.pem"
+            ;;
+    esac
 
     # with OpenSSL 1.0.1h, -www, -WWW and -HTTP break DTLS handshakes
     if is_dtls "$MODE"; then
@@ -782,9 +961,27 @@ setup_arguments()
     fi
 
     M_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
-    O_CLIENT_ARGS="-connect localhost:$PORT -$MODE"
+    O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
-    G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
+
+    # Newer versions of OpenSSL have a syntax to enable all "ciphers", even
+    # low-security ones. This covers not just cipher suites but also protocol
+    # versions. It is necessary, for example, to use (D)TLS 1.0/1.1 on
+    # OpenSSL 1.1.1f from Ubuntu 20.04. The syntax was only introduced in
+    # OpenSSL 1.1.0 (21e0c1d23afff48601eb93135defddae51f7e2e3) and I can't find
+    # a way to discover it from -help, so check the openssl version.
+    case $($OPENSSL version) in
+        "OpenSSL 0"*|"OpenSSL 1.0"*) :;;
+        *)
+            O_CLIENT_ARGS="$O_CLIENT_ARGS -cipher ALL@SECLEVEL=0"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cipher ALL@SECLEVEL=0"
+            ;;
+    esac
+
+    case $($OPENSSL ciphers ALL) in
+        *ECDH-ECDSA*|*ECDH-RSA*) O_SUPPORT_ECDH="YES";;
+        *) O_SUPPORT_ECDH="NO";;
+    esac
 
     if [ "X$VERIFY" = "XYES" ];
     then
@@ -821,39 +1018,29 @@ setup_arguments()
             ;;
 
         "RSA")
-            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server2.crt -key data_files/server2.key"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server2-sha256.crt -key data_files/server2.key"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key"
 
             if [ "X$VERIFY" = "XYES" ]; then
-                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
-                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
-                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile data_files/server1.crt --x509keyfile data_files/server1.key"
+                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=data_files/cert_sha256.crt key_file=data_files/server1.key"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/cert_sha256.crt -key data_files/server1.key"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile data_files/cert_sha256.crt --x509keyfile data_files/server1.key"
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi
-
-            # Allow SHA-1. It's disabled by default for security reasons but
-            # our tests still use certificates signed with it.
-            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
-            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
             ;;
 
         "PSK")
             # give RSA-PSK-capable server a RSA cert
             # (should be a separate type, but harder to close with openssl)
-            M_SERVER_ARGS="$M_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=data_files/server2.crt key_file=data_files/server2.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS psk=6162636465666768696a6b6c6d6e6f70 ca_file=none crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key"
             O_SERVER_ARGS="$O_SERVER_ARGS -psk 6162636465666768696a6b6c6d6e6f70 -nocert"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key --pskpasswd data_files/passwd.psk"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --pskpasswd data_files/passwd.psk"
 
             M_CLIENT_ARGS="$M_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
             G_CLIENT_ARGS="$G_CLIENT_ARGS --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70"
-
-            # Allow SHA-1. It's disabled by default for security reasons but
-            # our tests still use certificates signed with it.
-            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
-            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
             ;;
     esac
 }
@@ -907,7 +1094,7 @@ fi
 start_server() {
     case $1 in
         [Oo]pen*)
-            SERVER_CMD="$OPENSSL_CMD s_server $O_SERVER_ARGS"
+            SERVER_CMD="$OPENSSL s_server $O_SERVER_ARGS"
             ;;
         [Gg]nu*)
             SERVER_CMD="$GNUTLS_SERV $G_SERVER_ARGS --priority $G_SERVER_PRIO"
@@ -929,15 +1116,17 @@ start_server() {
     echo "$SERVER_CMD" > $SRV_OUT
     # for servers without -www or equivalent
     while :; do echo bla; sleep 1; done | $SERVER_CMD >> $SRV_OUT 2>&1 &
-    PROCESS_ID=$!
+    SRV_PID=$!
 
-    wait_server_start "$PORT" "$PROCESS_ID"
+    wait_server_start "$PORT" "$SRV_PID"
 }
 
 # terminate the running server
 stop_server() {
-    kill $PROCESS_ID 2>/dev/null
-    wait $PROCESS_ID 2>/dev/null
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to SRV_OUT
+    kill $SRV_PID >/dev/null 2>&1
+    wait $SRV_PID >> $SRV_OUT 2>&1
 
     if [ "$MEMCHECK" -gt 0 ]; then
         if is_mbedtls "$SERVER_CMD" && has_mem_err $SRV_OUT; then
@@ -953,7 +1142,7 @@ stop_server() {
 # kill the running server (used when killed by signal)
 cleanup() {
     rm -f $SRV_OUT $CLI_OUT
-    kill $PROCESS_ID >/dev/null 2>&1
+    kill $SRV_PID >/dev/null 2>&1
     kill $WATCHDOG_PID >/dev/null 2>&1
     exit 1
 }
@@ -966,30 +1155,64 @@ wait_client_done() {
     ( sleep "$DOG_DELAY"; echo "TIMEOUT" >> $CLI_OUT; kill $CLI_PID ) &
     WATCHDOG_PID=$!
 
-    wait $CLI_PID
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
+    wait $CLI_PID >> $CLI_OUT 2>&1
     EXIT=$?
 
-    kill $WATCHDOG_PID
-    wait $WATCHDOG_PID
+    kill $WATCHDOG_PID >/dev/null 2>&1
+    wait $WATCHDOG_PID >> $CLI_OUT 2>&1
 
     echo "EXIT: $EXIT" >> $CLI_OUT
+}
+
+# record_outcome <outcome> [<failure-reason>]
+record_outcome() {
+    echo "$1"
+    if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        # The test outcome file has the format (in single line):
+        # platform;configuration;
+        # test suite name;test case description;
+        # PASS/FAIL/SKIP;[failure cause]
+        printf '%s;%s;%s;%s;%s;%s\n'                                    \
+            "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION"      \
+            "compat" "$TITLE"                                           \
+            "$1" "${2-}"                                                \
+            >> "$MBEDTLS_TEST_OUTCOME_FILE"
+    fi
+}
+
+# display additional information if test case fails
+report_fail() {
+    FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
+    record_outcome "FAIL" "$FAIL_PROMPT"
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+    echo "  ! $FAIL_PROMPT"
+
+    if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
+        echo "  ! server output:"
+        cat c-srv-${TESTS}.log
+        echo "  ! ==================================================="
+        echo "  ! client output:"
+        cat c-cli-${TESTS}.log
+    fi
 }
 
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
     TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
     TITLE="$TITLE $MODE,$VERIF $2"
-    printf "$TITLE "
+    printf "%s " "$TITLE"
     LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
     for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        record_outcome "SKIP"
         SKIPPED=$(( $SKIPPED + 1 ))
         return
     fi
@@ -997,7 +1220,7 @@ run_client() {
     # run the command and interpret result
     case $1 in
         [Oo]pen*)
-            CLIENT_CMD="$OPENSSL_CMD s_client $O_CLIENT_ARGS -cipher $2"
+            CLIENT_CMD="$OPENSSL s_client $O_CLIENT_ARGS -cipher $2"
             log "$CLIENT_CMD"
             echo "$CLIENT_CMD" > $CLI_OUT
             printf 'GET HTTP/1.0\r\n\r\n' | $CLIENT_CMD >> $CLI_OUT 2>&1 &
@@ -1006,7 +1229,7 @@ run_client() {
             if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
-                # If the cipher isn't supported...
+                # If it is NULL cipher ...
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else
@@ -1083,26 +1306,14 @@ run_client() {
     # report and count result
     case $RESULT in
         "0")
-            echo PASS
+            record_outcome "PASS"
             ;;
         "1")
-            echo SKIP
+            record_outcome "SKIP"
             SKIPPED=$(( $SKIPPED + 1 ))
             ;;
         "2")
-            echo FAIL
-            cp $SRV_OUT c-srv-${TESTS}.log
-            cp $CLI_OUT c-cli-${TESTS}.log
-            echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
-
-            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot -o "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
-                echo "  ! server output:"
-                cat c-srv-${TESTS}.log
-                echo "  ! ==================================================="
-                echo "  ! client output:"
-                cat c-cli-${TESTS}.log
-            fi
-
+            report_fail
             FAILED=$(( $FAILED + 1 ))
             ;;
     esac
@@ -1114,12 +1325,15 @@ run_client() {
 # MAIN
 #
 
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
-fi
-
 get_options "$@"
+
+# Make the outcome file path relative to the original directory, not
+# to .../tests
+case "$MBEDTLS_TEST_OUTCOME_FILE" in
+    [!/]*)
+        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
+        ;;
+esac
 
 # sanity checks, avoid an avalanche of errors
 if [ ! -x "$M_SRV" ]; then
@@ -1132,8 +1346,8 @@ if [ ! -x "$M_CLI" ]; then
 fi
 
 if echo "$PEERS" | grep -i openssl > /dev/null; then
-    if which "$OPENSSL_CMD" >/dev/null 2>&1; then :; else
-        echo "Command '$OPENSSL_CMD' not found" >&2
+    if which "$OPENSSL" >/dev/null 2>&1; then :; else
+        echo "Command '$OPENSSL' not found" >&2
         exit 1
     fi
 fi
@@ -1176,9 +1390,20 @@ SKIP_NEXT="NO"
 
 trap cleanup INT TERM HUP
 
-for VERIFY in $VERIFIES; do
-    for MODE in $MODES; do
-        for TYPE in $TYPES; do
+for MODE in $MODES; do
+    for TYPE in $TYPES; do
+
+        # PSK cipher suites do not allow client certificate verification.
+        # This means PSK test cases with VERIFY=YES should be replaced by
+        # VERIFY=NO or be ignored. SUB_VERIFIES variable is used to constrain
+        # verification option for PSK test cases.
+        SUB_VERIFIES=$VERIFIES
+        if [ "$TYPE" = "PSK" ]; then
+            SUB_VERIFIES="NO"
+        fi
+
+        for VERIFY in $SUB_VERIFIES; do
+            VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
             for PEER in $PEERS; do
 
             setup_arguments
@@ -1191,6 +1416,15 @@ for VERIFY in $VERIFIES; do
                         continue;
                     fi
 
+                    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
+                    # supports $O_MODE from the s_server help. (The s_client
+                    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
+                    # but doesn't list it. But the s_server help seems to be
+                    # accurate.)
+                    if ! $OPENSSL s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
+                        continue;
+                    fi
+
                     reset_ciphersuites
                     add_common_ciphersuites
                     add_openssl_ciphersuites
@@ -1199,7 +1433,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$M_CIPHERS" ]; then
                         start_server "OpenSSL"
                         for i in $M_CIPHERS; do
-                            check_openssl_server_bug $i
+                            o_check_ciphersuite "$i"
                             run_client mbedTLS $i
                         done
                         stop_server
@@ -1208,6 +1442,7 @@ for VERIFY in $VERIFIES; do
                     if [ "X" != "X$O_CIPHERS" ]; then
                         start_server "mbedTLS"
                         for i in $O_CIPHERS; do
+                            o_check_ciphersuite "$i"
                             run_client OpenSSL $i
                         done
                         stop_server
@@ -1273,8 +1508,7 @@ done
 
 echo "------------------------------------------------------------------------"
 
-if [ $FAILED -ne 0 -o $SRVMEM -ne 0 ];
-then
+if [ $FAILED -ne 0 -o $SRVMEM -ne 0 ]; then
     printf "FAILED"
 else
     printf "PASSED"
@@ -1290,4 +1524,9 @@ PASSED=$(( $TESTS - $FAILED ))
 echo " ($PASSED / $TESTS tests ($SKIPPED skipped$MEMREPORT))"
 
 FAILED=$(( $FAILED + $SRVMEM ))
+if [ $FAILED -gt 255 ]; then
+    # Clamp at 255 as caller gets exit code & 0xFF
+    # (so 256 would be 0, or success, etc)
+    FAILED=255
+fi
 exit $FAILED
