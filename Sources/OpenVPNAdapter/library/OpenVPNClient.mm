@@ -185,6 +185,10 @@ void OpenVPNClient::event(const ClientAPI::Event& ev) {
     }
 }
 
+void OpenVPNClient::acc_event(const ClientAPI::AppCustomControlMessageEvent& ev) {
+    (void)ev;
+}
+
 void OpenVPNClient::log(const ClientAPI::LogInfo& log) {
     NSString *logMessage = [NSString stringWithUTF8String:log.text.c_str()];
     [this->delegate clientLogMessage:logMessage];
