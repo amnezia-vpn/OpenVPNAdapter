@@ -55,7 +55,7 @@ Pod::Spec.new do |s|
 
   s.xcconfig = {
     "APPLICATION_EXTENSION_API_ONLY" => "YES",
-    "CLANG_CXX_LANGUAGE_STANDARD" => "gnu++14",
+    "CLANG_CXX_LANGUAGE_STANDARD" => "gnu++17",
     "CLANG_CXX_LIBRARY" => "libc++",
     "GCC_WARN_64_TO_32_BIT_CONVERSION" => "NO",
     "CLANG_WARN_DOCUMENTATION_COMMENTS" => "NO",
