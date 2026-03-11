@@ -3,23 +3,41 @@
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
 CFLAGS	?= -O2
-WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wunused
+WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../library 			\
+# Set this to -v to see the details of failing test cases
+TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
+
+# Include public header files from ../include, test-specific header files
+# from ./include, and private header files (used by some invasive tests)
+# from ../library.
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
+LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
+
+# Enable definition of various functions used throughout the testsuite
+# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
+# on non-POSIX platforms.
+LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
+
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
+endif
+
+ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
 endif
 
 # if we're running on Windows, build for Windows
@@ -40,412 +58,161 @@ EXEXT=
 SHARED_SUFFIX=
 endif
 
+ifdef WINDOWS
+PYTHON ?= python
+else
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
+endif
+
 # Zlib shared library extensions:
 ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
-	test_suite_aes.cfb$(EXEXT)	test_suite_aes.rest$(EXEXT)	\
-	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
-	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
-	test_suite_camellia$(EXEXT)	test_suite_ccm$(EXEXT)		\
-	test_suite_cmac$(EXEXT)						\
-	test_suite_cipher.aes$(EXEXT)					\
-	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
-	test_suite_cipher.gcm$(EXEXT)					\
-	test_suite_cipher.blowfish$(EXEXT)				\
-	test_suite_cipher.camellia$(EXEXT)				\
-	test_suite_cipher.des$(EXEXT)	test_suite_cipher.null$(EXEXT)	\
-	test_suite_cipher.padding$(EXEXT)				\
-	test_suite_ctr_drbg$(EXEXT)	test_suite_debug$(EXEXT)	\
-	test_suite_des$(EXEXT)		test_suite_dhm$(EXEXT)		\
-	test_suite_ecdh$(EXEXT)		test_suite_ecdsa$(EXEXT)	\
-	test_suite_ecjpake$(EXEXT)	test_suite_ecp$(EXEXT)		\
-	test_suite_error$(EXEXT)	test_suite_entropy$(EXEXT)	\
-	test_suite_gcm.aes128_de$(EXEXT)				\
-	test_suite_gcm.aes192_de$(EXEXT)				\
-	test_suite_gcm.aes256_de$(EXEXT)				\
-	test_suite_gcm.aes128_en$(EXEXT)				\
-	test_suite_gcm.aes192_en$(EXEXT)				\
-	test_suite_gcm.aes256_en$(EXEXT)				\
-	test_suite_gcm.camellia$(EXEXT)					\
-	test_suite_hmac_drbg.misc$(EXEXT)				\
-	test_suite_hmac_drbg.no_reseed$(EXEXT)				\
-	test_suite_hmac_drbg.nopr$(EXEXT)				\
-	test_suite_hmac_drbg.pr$(EXEXT)					\
-	test_suite_md$(EXEXT)		test_suite_mdx$(EXEXT)		\
-	test_suite_memory_buffer_alloc$(EXEXT)				\
-	test_suite_mpi$(EXEXT)						\
-	test_suite_pem$(EXEXT)			test_suite_pkcs1_v15$(EXEXT)	\
-	test_suite_pkcs1_v21$(EXEXT)	test_suite_pkcs5$(EXEXT)	\
-	test_suite_pkparse$(EXEXT)	test_suite_pkwrite$(EXEXT)	\
-	test_suite_pk$(EXEXT)						\
-	test_suite_rsa$(EXEXT)		test_suite_shax$(EXEXT)		\
-	test_suite_ssl$(EXEXT)		test_suite_timing$(EXEXT)			\
-	test_suite_x509parse$(EXEXT)	test_suite_x509write$(EXEXT)	\
-	test_suite_xtea$(EXEXT)		test_suite_version$(EXEXT)
+# A test application is built for each suites/test_suite_*.data file.
+# Application name is same as .data file's base name and can be
+# constructed by stripping path 'suites/' and extension .data.
+APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
+
+# Construct executable name by adding OS specific suffix $(EXEXT).
+BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 .SILENT:
 
 .PHONY: all check test clean
 
-all: $(APPS)
+all: $(BINARIES)
 
-$(DEP):
+$(MBEDLIBS):
 	$(MAKE) -C ../library
 
-# invoke perl explicitly for the sake of mingw32-make
+MBEDTLS_TEST_OBJS=$(patsubst %.c,%.o,$(wildcard src/*.c src/drivers/*.c src/test_helpers/*.c))
 
-test_suite_aes.ecb.c : suites/test_suite_aes.function suites/test_suite_aes.ecb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+mbedtls_test: $(MBEDTLS_TEST_OBJS)
+
+TEST_OBJS_DEPS = $(wildcard include/test/*.h include/test/*/*.h)
+ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+# Explicitly depend on this header because on a clean copy of the source tree,
+# it doesn't exist yet and must be generated as part of the build, and
+# therefore the wildcard enumeration above doesn't include it.
+TEST_OBJS_DEPS += include/test/instrument_record_status.h
+endif
+
+# Rule to compile common test C files in src folder
+src/%.o : src/%.c $(TEST_OBJS_DEPS)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+
+src/drivers/%.o : src/drivers/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+
+src/test_helpers/%.o : src/test_helpers/%.c
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+
+C_FILES := $(addsuffix .c,$(APPS))
+c: $(C_FILES)
+
+# Wildcard target for test code generation:
+# A .c file is generated for each .data file in the suites/ directory. Each .c
+# file depends on a .data and .function file from suites/ directory. Following
+# nameing convention is followed:
+#
+#     C file        |        Depends on
+#-----------------------------------------------------------------------------
+#  foo.c            | suites/foo.function suites/foo.data
+#  foo.bar.c        | suites/foo.function suites/foo.bar.data
+#
+# Note above that .c and .data files have same base name.
+# However, corresponding .function file's base name is the word before first
+# dot in .c file's base name.
+#
+.SECONDEXPANSION:
+%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/host_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.ecb
+	$(PYTHON) scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
+		-d suites/$*.data \
+		-t suites/main_test.function \
+		-p suites/host_test.function \
+		-s suites  \
+		--helpers-file suites/helpers.function \
+		-o .
 
-test_suite_aes.cbc.c : suites/test_suite_aes.function suites/test_suite_aes.cbc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.cbc
 
-test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.cfb
-
-test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.rest
-
-test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aes
-
-test_suite_cipher.arc4.c : suites/test_suite_cipher.function suites/test_suite_cipher.arc4.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.arc4
-
-test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_cipher.ccm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.ccm
-
-test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.gcm
-
-test_suite_cipher.blowfish.c : suites/test_suite_cipher.function suites/test_suite_cipher.blowfish.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.blowfish
-
-test_suite_cipher.camellia.c : suites/test_suite_cipher.function suites/test_suite_cipher.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.camellia
-
-test_suite_cipher.des.c : suites/test_suite_cipher.function suites/test_suite_cipher.des.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.des
-
-test_suite_cipher.null.c : suites/test_suite_cipher.function suites/test_suite_cipher.null.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.null
-
-test_suite_cipher.padding.c : suites/test_suite_cipher.function suites/test_suite_cipher.padding.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.padding
-
-test_suite_gcm.aes128_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_de
-
-test_suite_gcm.aes192_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_de
-
-test_suite_gcm.aes256_de.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_de.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_de
-
-test_suite_gcm.aes128_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes128_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes128_en
-
-test_suite_gcm.aes192_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes192_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes192_en
-
-test_suite_gcm.aes256_en.c : suites/test_suite_gcm.function suites/test_suite_gcm.aes256_en.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.aes256_en
-
-test_suite_gcm.camellia.c : suites/test_suite_gcm.function suites/test_suite_gcm.camellia.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_gcm test_suite_gcm.camellia
-
-test_suite_hmac_drbg.misc.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.misc.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.misc
-
-test_suite_hmac_drbg.no_reseed.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.no_reseed.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.no_reseed
-
-test_suite_hmac_drbg.nopr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.nopr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.nopr
-
-test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_suite_hmac_drbg.pr.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_hmac_drbg test_suite_hmac_drbg.pr
-
-%.c : suites/%.function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites $* $*
-
-test_suite_aes.ecb$(EXEXT): test_suite_aes.ecb.c $(DEP)
+$(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_aes.cbc$(EXEXT): test_suite_aes.cbc.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_aes.cfb$(EXEXT): test_suite_aes.cfb.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_aes.rest$(EXEXT): test_suite_aes.rest.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_arc4$(EXEXT): test_suite_arc4.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_asn1write$(EXEXT): test_suite_asn1write.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_base64$(EXEXT): test_suite_base64.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_blowfish$(EXEXT): test_suite_blowfish.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_camellia$(EXEXT): test_suite_camellia.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ccm$(EXEXT): test_suite_ccm.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cmac$(EXEXT): test_suite_cmac.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.aes$(EXEXT): test_suite_cipher.aes.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.arc4$(EXEXT): test_suite_cipher.arc4.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.gcm$(EXEXT): test_suite_cipher.gcm.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.blowfish$(EXEXT): test_suite_cipher.blowfish.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.camellia$(EXEXT): test_suite_cipher.camellia.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.des$(EXEXT): test_suite_cipher.des.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.null$(EXEXT): test_suite_cipher.null.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.padding$(EXEXT): test_suite_cipher.padding.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ctr_drbg$(EXEXT): test_suite_ctr_drbg.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_des$(EXEXT): test_suite_des.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_dhm$(EXEXT): test_suite_dhm.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ecdh$(EXEXT): test_suite_ecdh.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ecdsa$(EXEXT): test_suite_ecdsa.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ecjpake$(EXEXT): test_suite_ecjpake.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ecp$(EXEXT): test_suite_ecp.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_entropy$(EXEXT): test_suite_entropy.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_error$(EXEXT): test_suite_error.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.aes128_de$(EXEXT): test_suite_gcm.aes128_de.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.aes192_de$(EXEXT): test_suite_gcm.aes192_de.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.aes256_de$(EXEXT): test_suite_gcm.aes256_de.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.aes128_en$(EXEXT): test_suite_gcm.aes128_en.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.aes192_en$(EXEXT): test_suite_gcm.aes192_en.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.aes256_en$(EXEXT): test_suite_gcm.aes256_en.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_gcm.camellia$(EXEXT): test_suite_gcm.camellia.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_hmac_drbg.misc$(EXEXT): test_suite_hmac_drbg.misc.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_hmac_drbg.no_reseed$(EXEXT): test_suite_hmac_drbg.no_reseed.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_hmac_drbg.nopr$(EXEXT): test_suite_hmac_drbg.nopr.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_hmac_drbg.pr$(EXEXT): test_suite_hmac_drbg.pr.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_md$(EXEXT): test_suite_md.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_mdx$(EXEXT): test_suite_mdx.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_memory_buffer_alloc$(EXEXT): test_suite_memory_buffer_alloc.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_mpi$(EXEXT): test_suite_mpi.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pem$(EXEXT): test_suite_pem.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pkcs1_v15$(EXEXT): test_suite_pkcs1_v15.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pkcs1_v21$(EXEXT): test_suite_pkcs1_v21.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pkcs5$(EXEXT): test_suite_pkcs5.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pkparse$(EXEXT): test_suite_pkparse.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pkwrite$(EXEXT): test_suite_pkwrite.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_pk$(EXEXT): test_suite_pk.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_rsa$(EXEXT): test_suite_rsa.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_shax$(EXEXT): test_suite_shax.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_ssl$(EXEXT): test_suite_ssl.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_timing$(EXEXT): test_suite_timing.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_x509parse$(EXEXT): test_suite_x509parse.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_x509write$(EXEXT): test_suite_x509write.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_xtea$(EXEXT): test_suite_xtea.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_debug$(EXEXT): test_suite_debug.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_version$(EXEXT): test_suite_version.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $< $(MBEDTLS_TEST_OBJS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS) *.c
+	rm -rf $(BINARIES) *.c *.datax
+	rm -f src/*.o src/drivers/*.o src/test_helpers/*.o src/libmbed*
+	rm -f include/test/instrument_record_status.h
+	rm -rf libtestdriver1
 else
-	del /Q /F *.c *.exe
+	if exist *.c del /Q /F *.c
+	if exist *.exe del /Q /F *.exe
+	if exist *.datax del /Q /F *.datax
+	if exist src/*.o del /Q /F src/*.o
+	if exist src/drivers/*.o del /Q /F src/drivers/*.o
+	if exist src/test_helpers/*.o del /Q /F src/test_helpers/*.o
+	if exist src/libmbed* del /Q /F src/libmed*
+	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
-check: $(APPS)
-	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
+check: $(BINARIES)
+	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
+
+# Generate test library
+
+# Perl code that is executed to transform each original line from a library
+# source file into the corresponding line in the test driver copy of the
+# library. Add a LIBTESTDRIVER1_/libtestdriver1_ to mbedtls_xxx and psa_xxx
+# symbols.
+define libtestdriver1_rewrite :=
+	s!^(\s*#\s*include\s*[\"<])(mbedtls|psa)/!$${1}libtestdriver1/include/$${2}/!; \
+	next if /^\s*#\s*include/; \
+	s/\b(?=MBEDTLS_|PSA_)/LIBTESTDRIVER1_/g; \
+	s/\b(?=mbedtls_|psa_)/libtestdriver1_/g;
+endef
+
+libtestdriver1.a:
+	# Copy the library and fake a 3rdparty Makefile include.
+	rm -Rf ./libtestdriver1
+	mkdir ./libtestdriver1
+	cp -Rf ../library ./libtestdriver1
+	cp -Rf ../include ./libtestdriver1
+	mkdir ./libtestdriver1/3rdparty
+	touch ./libtestdriver1/3rdparty/Makefile.inc
+
+	# Set the test driver base (minimal) configuration.
+	cp ./include/test/drivers/config_test_driver.h ./libtestdriver1/include/mbedtls/config.h
+
+	# Set the PSA cryptography configuration for the test library.
+	# It is set from the copied include/psa/crypto_config.h of the Mbed TLS
+        # library the test library is intended to be linked with extended by
+        # ./include/test/drivers/crypto_config_test_driver_extension.h to
+        # mirror the PSA_ACCEL_* macros.
+	mv ./libtestdriver1/include/psa/crypto_config.h ./libtestdriver1/include/psa/crypto_config.h.bak
+	head -n -1 ./libtestdriver1/include/psa/crypto_config.h.bak > ./libtestdriver1/include/psa/crypto_config.h
+	cat ./include/test/drivers/crypto_config_test_driver_extension.h >> ./libtestdriver1/include/psa/crypto_config.h
+	echo "#endif /* PSA_CRYPTO_CONFIG_H */" >> ./libtestdriver1/include/psa/crypto_config.h
+
+	# Prefix MBEDTLS_* PSA_* symbols with LIBTESTDRIVER1_ as well as
+	# mbedtls_* psa_* symbols with libtestdriver1_ to avoid symbol clash
+	# when this test driver library is linked with the Mbed TLS library.
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/library/*.[ch]
+	perl -pi -e '$(libtestdriver1_rewrite)' ./libtestdriver1/include/*/*.h
+
+	$(MAKE) -C ./libtestdriver1/library CFLAGS="-I../../ $(CFLAGS)" LDFLAGS="$(LDFLAGS)" libmbedcrypto.a
+	cp ./libtestdriver1/library/libmbedcrypto.a ../library/libtestdriver1.a
+
+ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile
+	echo "  Gen  $@"
+	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
+endif
