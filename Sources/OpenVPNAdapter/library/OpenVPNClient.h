@@ -94,7 +94,6 @@ public:
     void external_pki_sign_request(ClientAPI::ExternalPKISignRequest& signreq) override;
     
     void event(const ClientAPI::Event& event) override;
-    void acc_event(const ClientAPI::AppCustomControlMessageEvent& event) override;
     void log(const ClientAPI::LogInfo& log) override;
     
     void clock_tick() override;
@@ -103,4 +102,5 @@ private:
     __weak id<OpenVPNClientDelegate> _Nonnull delegate;
     ClientAPI::Config * _Nullable config;
 };
+
 

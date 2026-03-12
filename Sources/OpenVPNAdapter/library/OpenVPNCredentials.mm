@@ -13,8 +13,6 @@ using namespace openvpn;
 
 @interface OpenVPNCredentials () {
     ClientAPI::ProvideCreds _credentials;
-    BOOL _replacePasswordWithSessionID;
-    BOOL _cachePassword;
 }
 
 @end
@@ -63,19 +61,19 @@ using namespace openvpn;
 }
 
 - (BOOL)replacePasswordWithSessionID {
-    return _replacePasswordWithSessionID;
+    return _credentials.replacePasswordWithSessionID;
 }
 
 - (void)setReplacePasswordWithSessionID:(BOOL)replacePasswordWithSessionID {
-    _replacePasswordWithSessionID = replacePasswordWithSessionID;
+    _credentials.replacePasswordWithSessionID = replacePasswordWithSessionID;
 }
 
 - (BOOL)cachePassword {
-    return _cachePassword;
+    return _credentials.cachePassword;
 }
 
 - (void)setCachePassword:(BOOL)cachePassword {
-    _cachePassword = cachePassword;
+    _credentials.cachePassword = cachePassword;
 }
 
 @end
