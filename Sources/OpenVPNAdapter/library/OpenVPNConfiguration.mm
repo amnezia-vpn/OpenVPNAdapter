@@ -215,8 +215,7 @@ NSString *const OpenVPNTLSCertProfileDefaultValue = @"default";
 @implementation OpenVPNConfiguration
 
 - (void)setPTCloak {
-    // OpenVPN3 no longer exposes Config.usePluggableTransports.
-    // Keep the adapter API intact while the actual PT behavior is configured elsewhere.
+    _config.usePluggableTransports = TRUE;
 }
 
 - (NSData *)fileContent {

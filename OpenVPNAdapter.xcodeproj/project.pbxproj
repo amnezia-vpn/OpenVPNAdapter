@@ -144,6 +144,7 @@
 		OBJ_362 /* md2.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_115 /* md2.c */; };
 		OBJ_363 /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_116 /* md4.c */; };
 		OBJ_364 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_117 /* md5.c */; };
+		OBJ_365 /* md_wrap.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_118 /* md_wrap.c */; };
 		OBJ_366 /* memory_buffer_alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_119 /* memory_buffer_alloc.c */; };
 		OBJ_367 /* net_sockets.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_120 /* net_sockets.c */; };
 		OBJ_368 /* oid.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_121 /* oid.c */; };
@@ -182,31 +183,6 @@
 		OBJ_401 /* x509write_crt.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_154 /* x509write_crt.c */; };
 		OBJ_402 /* x509write_csr.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_155 /* x509write_csr.c */; };
 		OBJ_403 /* xtea.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_156 /* xtea.c */; };
-		OBJ_405 /* aria.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_430 /* aria.c */; };
-		OBJ_406 /* chacha20.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_431 /* chacha20.c */; };
-		OBJ_407 /* chachapoly.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_432 /* chachapoly.c */; };
-		OBJ_408 /* constant_time.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_433 /* constant_time.c */; };
-		OBJ_409 /* hkdf.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_434 /* hkdf.c */; };
-		OBJ_410 /* mps_reader.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_435 /* mps_reader.c */; };
-		OBJ_411 /* mps_trace.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_436 /* mps_trace.c */; };
-		OBJ_412 /* nist_kw.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_437 /* nist_kw.c */; };
-		OBJ_413 /* platform_util.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_438 /* platform_util.c */; };
-		OBJ_414 /* poly1305.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_439 /* poly1305.c */; };
-		OBJ_415 /* psa_crypto.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_440 /* psa_crypto.c */; };
-		OBJ_416 /* psa_crypto_aead.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_441 /* psa_crypto_aead.c */; };
-		OBJ_417 /* psa_crypto_cipher.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_442 /* psa_crypto_cipher.c */; };
-		OBJ_418 /* psa_crypto_client.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_443 /* psa_crypto_client.c */; };
-		OBJ_419 /* psa_crypto_driver_wrappers.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_444 /* psa_crypto_driver_wrappers.c */; };
-		OBJ_420 /* psa_crypto_ecp.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_445 /* psa_crypto_ecp.c */; };
-		OBJ_421 /* psa_crypto_hash.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_446 /* psa_crypto_hash.c */; };
-		OBJ_422 /* psa_crypto_mac.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_447 /* psa_crypto_mac.c */; };
-		OBJ_423 /* psa_crypto_rsa.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_448 /* psa_crypto_rsa.c */; };
-		OBJ_424 /* psa_crypto_se.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_449 /* psa_crypto_se.c */; };
-		OBJ_425 /* psa_crypto_slot_management.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_450 /* psa_crypto_slot_management.c */; };
-		OBJ_426 /* psa_crypto_storage.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_451 /* psa_crypto_storage.c */; };
-		OBJ_427 /* psa_its_file.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_452 /* psa_its_file.c */; };
-		OBJ_428 /* ssl_msg.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_453 /* ssl_msg.c */; };
-		OBJ_429 /* ssl_tls13_keys.c in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_454 /* ssl_tls13_keys.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -336,6 +312,7 @@
 		OBJ_115 /* md2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = md2.c; sourceTree = "<group>"; };
 		OBJ_116 /* md4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = md4.c; sourceTree = "<group>"; };
 		OBJ_117 /* md5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
+		OBJ_118 /* md_wrap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = md_wrap.c; sourceTree = "<group>"; };
 		OBJ_119 /* memory_buffer_alloc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = memory_buffer_alloc.c; sourceTree = "<group>"; };
 		OBJ_120 /* net_sockets.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_sockets.c; sourceTree = "<group>"; };
 		OBJ_121 /* oid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = oid.c; sourceTree = "<group>"; };
@@ -513,31 +490,6 @@
 		"OpenVPNAdapter::OpenVPNAdapter::Product" /* OpenVPNAdapter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OpenVPNAdapter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"OpenVPNAdapter::OpenVPNClient::Product" /* OpenVPNClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OpenVPNClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"OpenVPNAdapter::mbedTLS::Product" /* mbedTLS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = mbedTLS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		OBJ_430 /* aria.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = aria.c; sourceTree = "<group>"; };
-		OBJ_431 /* chacha20.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = chacha20.c; sourceTree = "<group>"; };
-		OBJ_432 /* chachapoly.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = chachapoly.c; sourceTree = "<group>"; };
-		OBJ_433 /* constant_time.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = constant_time.c; sourceTree = "<group>"; };
-		OBJ_434 /* hkdf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hkdf.c; sourceTree = "<group>"; };
-		OBJ_435 /* mps_reader.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mps_reader.c; sourceTree = "<group>"; };
-		OBJ_436 /* mps_trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mps_trace.c; sourceTree = "<group>"; };
-		OBJ_437 /* nist_kw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = nist_kw.c; sourceTree = "<group>"; };
-		OBJ_438 /* platform_util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = platform_util.c; sourceTree = "<group>"; };
-		OBJ_439 /* poly1305.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = poly1305.c; sourceTree = "<group>"; };
-		OBJ_440 /* psa_crypto.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto.c; sourceTree = "<group>"; };
-		OBJ_441 /* psa_crypto_aead.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_aead.c; sourceTree = "<group>"; };
-		OBJ_442 /* psa_crypto_cipher.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_cipher.c; sourceTree = "<group>"; };
-		OBJ_443 /* psa_crypto_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_client.c; sourceTree = "<group>"; };
-		OBJ_444 /* psa_crypto_driver_wrappers.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_driver_wrappers.c; sourceTree = "<group>"; };
-		OBJ_445 /* psa_crypto_ecp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_ecp.c; sourceTree = "<group>"; };
-		OBJ_446 /* psa_crypto_hash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_hash.c; sourceTree = "<group>"; };
-		OBJ_447 /* psa_crypto_mac.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_mac.c; sourceTree = "<group>"; };
-		OBJ_448 /* psa_crypto_rsa.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_rsa.c; sourceTree = "<group>"; };
-		OBJ_449 /* psa_crypto_se.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_se.c; sourceTree = "<group>"; };
-		OBJ_450 /* psa_crypto_slot_management.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_slot_management.c; sourceTree = "<group>"; };
-		OBJ_451 /* psa_crypto_storage.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_crypto_storage.c; sourceTree = "<group>"; };
-		OBJ_452 /* psa_its_file.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = psa_its_file.c; sourceTree = "<group>"; };
-		OBJ_453 /* ssl_msg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssl_msg.c; sourceTree = "<group>"; };
-		OBJ_454 /* ssl_tls13_keys.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ssl_tls13_keys.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -976,6 +928,7 @@
 				OBJ_115 /* md2.c */,
 				OBJ_116 /* md4.c */,
 				OBJ_117 /* md5.c */,
+				OBJ_118 /* md_wrap.c */,
 				OBJ_119 /* memory_buffer_alloc.c */,
 				OBJ_120 /* net_sockets.c */,
 				OBJ_121 /* oid.c */,
@@ -1014,31 +967,6 @@
 				OBJ_154 /* x509write_crt.c */,
 				OBJ_155 /* x509write_csr.c */,
 				OBJ_156 /* xtea.c */,
-				OBJ_430 /* aria.c */,
-				OBJ_431 /* chacha20.c */,
-				OBJ_432 /* chachapoly.c */,
-				OBJ_433 /* constant_time.c */,
-				OBJ_434 /* hkdf.c */,
-				OBJ_435 /* mps_reader.c */,
-				OBJ_436 /* mps_trace.c */,
-				OBJ_437 /* nist_kw.c */,
-				OBJ_438 /* platform_util.c */,
-				OBJ_439 /* poly1305.c */,
-				OBJ_440 /* psa_crypto.c */,
-				OBJ_441 /* psa_crypto_aead.c */,
-				OBJ_442 /* psa_crypto_cipher.c */,
-				OBJ_443 /* psa_crypto_client.c */,
-				OBJ_444 /* psa_crypto_driver_wrappers.c */,
-				OBJ_445 /* psa_crypto_ecp.c */,
-				OBJ_446 /* psa_crypto_hash.c */,
-				OBJ_447 /* psa_crypto_mac.c */,
-				OBJ_448 /* psa_crypto_rsa.c */,
-				OBJ_449 /* psa_crypto_se.c */,
-				OBJ_450 /* psa_crypto_slot_management.c */,
-				OBJ_451 /* psa_crypto_storage.c */,
-				OBJ_452 /* psa_its_file.c */,
-				OBJ_453 /* ssl_msg.c */,
-				OBJ_454 /* ssl_tls13_keys.c */,
 			);
 			path = library;
 			sourceTree = "<group>";
@@ -1351,6 +1279,7 @@
 				OBJ_362 /* md2.c in Sources */,
 				OBJ_363 /* md4.c in Sources */,
 				OBJ_364 /* md5.c in Sources */,
+				OBJ_365 /* md_wrap.c in Sources */,
 				OBJ_366 /* memory_buffer_alloc.c in Sources */,
 				OBJ_367 /* net_sockets.c in Sources */,
 				OBJ_368 /* oid.c in Sources */,
@@ -1389,31 +1318,6 @@
 				OBJ_401 /* x509write_crt.c in Sources */,
 				OBJ_402 /* x509write_csr.c in Sources */,
 				OBJ_403 /* xtea.c in Sources */,
-				OBJ_405 /* aria.c in Sources */,
-				OBJ_406 /* chacha20.c in Sources */,
-				OBJ_407 /* chachapoly.c in Sources */,
-				OBJ_408 /* constant_time.c in Sources */,
-				OBJ_409 /* hkdf.c in Sources */,
-				OBJ_410 /* mps_reader.c in Sources */,
-				OBJ_411 /* mps_trace.c in Sources */,
-				OBJ_412 /* nist_kw.c in Sources */,
-				OBJ_413 /* platform_util.c in Sources */,
-				OBJ_414 /* poly1305.c in Sources */,
-				OBJ_415 /* psa_crypto.c in Sources */,
-				OBJ_416 /* psa_crypto_aead.c in Sources */,
-				OBJ_417 /* psa_crypto_cipher.c in Sources */,
-				OBJ_418 /* psa_crypto_client.c in Sources */,
-				OBJ_419 /* psa_crypto_driver_wrappers.c in Sources */,
-				OBJ_420 /* psa_crypto_ecp.c in Sources */,
-				OBJ_421 /* psa_crypto_hash.c in Sources */,
-				OBJ_422 /* psa_crypto_mac.c in Sources */,
-				OBJ_423 /* psa_crypto_rsa.c in Sources */,
-				OBJ_424 /* psa_crypto_se.c in Sources */,
-				OBJ_425 /* psa_crypto_slot_management.c in Sources */,
-				OBJ_426 /* psa_crypto_storage.c in Sources */,
-				OBJ_427 /* psa_its_file.c in Sources */,
-				OBJ_428 /* ssl_msg.c in Sources */,
-				OBJ_429 /* ssl_tls13_keys.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

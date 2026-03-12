@@ -4,7 +4,7 @@
  * \brief Minimal configuration of features that do not require an entropy source
  */
 /*
- *  Copyright The Mbed TLS Contributors
+ *  Copyright (C) 2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,10 +18,12 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
  * Minimal configuration of features that do not require an entropy source
- * Distinguishing features:
+ * Distinguishing reatures:
  * - no entropy module
  * - no TLS protocol implementation available due to absence of an entropy
  *   source
@@ -80,11 +82,10 @@
 #define MBEDTLS_X509_USE_C
 #define MBEDTLS_X509_CRT_PARSE_C
 #define MBEDTLS_X509_CRL_PARSE_C
-//#define MBEDTLS_CMAC_C
 
 /* Miscellaneous options */
 #define MBEDTLS_AES_ROM_TABLES
 
-#include "mbedtls/check_config.h"
+#include "check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */
